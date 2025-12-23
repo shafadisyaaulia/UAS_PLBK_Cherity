@@ -33,3 +33,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Models (large files - don't commit)
+api/models/*.pt
+api/models/*.pth
+api/models/*.onnx
+!api/models/README.md

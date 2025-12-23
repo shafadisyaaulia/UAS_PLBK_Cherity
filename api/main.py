@@ -21,6 +21,7 @@ import math
 from datetime import datetime
 import mediapipe as mp
 import torch
+import os
 
 # ============================================================================
 # FASTAPI INITIALIZATION
@@ -37,20 +38,31 @@ app.add_middleware(
 )
 
 # ============================================================================
-# YOLOV5 INITIALIZATION
+# YOLOV5 INITIALIZATION (OPTIONAL - Disabled by default for SOLVIA Chemistry focus)
 # ============================================================================
 
-print("🔄 Loading YOLOv5 model...")
-try:
-    # Load YOLOv5 nano model from torch hub
-    yolo_model = torch.hub.load('ultralytics/yolov5', 'yolov5n', pretrained=True)
-    yolo_model.conf = 0.4  # Confidence threshold
-    yolo_model.iou = 0.45  # IoU threshold
-    yolo_model.classes = [0]  # Only detect person (class 0 in COCO dataset)
-    print("✅ YOLOv5 model loaded successfully!")
-except Exception as e:
-    print(f"⚠️ Warning: Could not load YOLOv5 model: {e}")
-    yolo_model = None
+print("🔄 Checking YOLOv5 model...")
+yolo_model = None
+yolo_available = False
+
+# Disable YOLOv5 for chemistry lab focus - uncomment if needed for fall detection
+# try:
+#     custom_model_path = "models/best.pt"
+#     if os.path.exists(custom_model_path):
+#         print(f"🔄 Loading custom fall detection model from {custom_model_path}...")
+#         
+#         from ultralytics import YOLO
+#         yolo_model = YOLO(custom_model_path)
+#         
+#         yolo_available = True
+#         print("✅ Custom YOLOv5 fall detection model loaded successfully!")
+#         print("📊 Model Accuracy: 95.3% mAP@50 (trained on 7929 images)")
+#         print("🎯 Classes: non_fall (94.6%), fall (95.9%)")
+# except Exception as e:
+#     print(f"⚠️ Warning: Could not load YOLOv5 model: {e}")
+#     yolo_available = False
+
+print("⚠️ YOLOv5 fall detection: DISABLED (focus on chemistry)")
 
 # ============================================================================
 # PYDANTIC MODELS
@@ -459,6 +471,8 @@ last_person_bbox = None  # Track last person bounding box for fall detection
 def detect_fall_yolov5(frame: np.ndarray) -> Tuple[bool, Optional[Dict]]:
     """
     Detect fall using YOLOv5 person detection
+    Supports both custom trained model (class 0=non_fall, 1=fall) 
+    and default model (aspect ratio based detection)
     Returns: (is_fallen, detection_info)
     """
     global last_person_bbox
@@ -477,33 +491,47 @@ def detect_fall_yolov5(frame: np.ndarray) -> Tuple[bool, Optional[Dict]]:
             last_person_bbox = None
             return False, None
         
-        # Get the first person detection (highest confidence)
-        person_det = detections[0]
-        x1, y1, x2, y2, conf, cls = person_det
+        # Get the first detection (highest confidence)
+        detection = detections[0]
+        x1, y1, x2, y2, conf, cls = detection
         
         # Calculate bounding box dimensions
         bbox_width = x2 - x1
         bbox_height = y2 - y1
-        
-        # Fall detection logic:
-        # If width is significantly larger than height, person is likely fallen
         aspect_ratio = bbox_width / bbox_height if bbox_height > 0 else 0
         
-        # Thresholds:
-        # - Normal standing person: height > width (ratio < 1)
-        # - Fallen person: width > height (ratio > 1.3)
-        is_fallen = aspect_ratio > 1.3
+        # Determine if fallen based on model type
+        # Check if using custom model (has class 1 for 'fall')
+        if os.path.exists("models/best.pt"):
+            # Custom model: class 1 = fall, class 0 = non_fall
+            is_fallen = (int(cls) == 1)
+            detection_method = "Custom Model"
+        else:
+            # Default model: use aspect ratio
+            # Thresholds:
+            # - Normal standing person: height > width (ratio < 1)
+            # - Fallen person: width > height (ratio > 1.3)
+            is_fallen = aspect_ratio > 1.3
+            detection_method = "Aspect Ratio"
         
         detection_info = {
             "bbox": [float(x1), float(y1), float(x2), float(y2)],
             "confidence": float(conf),
+            "class": int(cls),
             "width": float(bbox_width),
             "height": float(bbox_height),
             "aspect_ratio": float(aspect_ratio),
-            "is_fallen": is_fallen
+            "is_fallen": is_fallen,
+            "detection_method": detection_method
         }
         
-        last_person_bbox = 
+        last_person_bbox = detection_info
+        
+        return is_fallen, detection_info
+        
+    except Exception as e:
+        print(f"Error in fall detection: {e}")
+        return False, None
 
 def process_frame_complete(frame: np.ndarray) -> Tuple[np.ndarray, Dict, str]:
     """
@@ -532,13 +560,7 @@ def process_frame_complete(frame: np.ndarray) -> Tuple[np.ndarray, Dict, str]:
     # Step 2: MediaPipe Hands Detection
     frame, hand_data = process_frame_with_mediapipe(frame)
     
-    return frame, hand_data, current_safety_statusdetection_info
-        
-        return is_fallen, detection_info
-        
-    except Exception as e:
-        print(f"Error in fall detection: {e}")
-        return False, None
+    return frame, hand_data, current_safety_status
 
 def draw_yolo_detection(frame: np.ndarray, detection_info: Optional[Dict]) -> np.ndarray:
     """Draw YOLOv5 detection bounding box on frame"""
@@ -579,7 +601,8 @@ def process_frame_with_mediapipe(frame: np.ndarray) -> Tuple[np.ndarray, Dict]:
     hand_data = {
         "hands_detected": False,
         "landmarks": [],
-        "gesture": "none"
+        "gesture": "none",
+        "pointer_position": None
     }
     
     if results.multi_hand_landmarks:
@@ -605,17 +628,40 @@ def process_frame_with_mediapipe(frame: np.ndarray) -> Tuple[np.ndarray, Dict]:
                 })
             hand_data["landmarks"].append(landmarks_list)
             
-            # Simple gesture detection (pinch detection)
+            # Get key landmarks
             thumb_tip = hand_landmarks.landmark[4]
             index_tip = hand_landmarks.landmark[8]
+            index_mcp = hand_landmarks.landmark[5]  # Index finger base
+            middle_tip = hand_landmarks.landmark[12]
+            ring_tip = hand_landmarks.landmark[16]
+            pinky_tip = hand_landmarks.landmark[20]
             
-            distance = math.sqrt(
+            # Pinch detection (thumb + index close)
+            pinch_distance = math.sqrt(
                 (thumb_tip.x - index_tip.x)**2 + 
                 (thumb_tip.y - index_tip.y)**2
             )
             
-            if distance < 0.05:
+            # Pointing detection (only index extended, others closed)
+            index_extended = index_tip.y < index_mcp.y - 0.05
+            middle_closed = middle_tip.y > index_mcp.y
+            ring_closed = ring_tip.y > index_mcp.y
+            pinky_closed = pinky_tip.y > index_mcp.y
+            
+            # Set gesture and pointer position
+            if pinch_distance < 0.05:
                 hand_data["gesture"] = "pinch"
+            elif index_extended and middle_closed and ring_closed and pinky_closed:
+                hand_data["gesture"] = "pointing"
+                hand_data["pointer_position"] = {
+                    "x": index_tip.x,
+                    "y": index_tip.y
+                }
+                # Draw pointer indicator on frame
+                h, w = frame.shape[:2]
+                px, py = int(index_tip.x * w), int(index_tip.y * h)
+                cv2.circle(frame, (px, py), 15, (0, 255, 0), 3)
+                cv2.circle(frame, (px, py), 5, (0, 255, 0), -1)
             else:
                 hand_data["gesture"] = "open"
     
@@ -634,9 +680,49 @@ def encode_frame_to_base64(frame: np.ndarray) -> str:
 @app.get("/")
 async def root():
     return {
-        "message": "SOLVIA Backend API",
+        "message": "SOLVIA Backend API - Solution Vision-driven Integrated Analytics",
         "version": "1.0.0",
-        "status": "running"
+        "status": "running",
+        "features": {
+            "chemistry_engine": True,
+            "hand_gestures": True,
+            "fall_detection": yolo_available
+        }
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now().isoformat(),
+        "services": {
+            "websocket": "active",
+            "mediapipe_hands": True,
+            "yolov5_fall_detection": yolo_available,
+            "chemistry_engine": True
+        }
+    }
+
+@app.get("/api/model/info")
+async def model_info():
+    """Get information about the loaded YOLOv5 model"""
+    if yolo_available:
+        return {
+            "model_loaded": True,
+            "model_path": "models/best.pt",
+            "accuracy": "95.3% mAP@50",
+            "training_data": "Fall/Non-fall dataset (7929 train images)",
+            "classes": ["non_fall (94.6%)", "fall (95.9%)"],
+            "epochs_trained": 22,
+            "best_epoch": 11,
+            "precision": "96.3%",
+            "recall": "94.3%"
+        }
+    return {
+        "model_loaded": False,
+        "reason": "Model file not found or failed to load",
+        "fallback": "Fall detection disabled"
     }
 
 @app.get("/api/chemicals")
@@ -680,7 +766,44 @@ async def get_mixture_state():
     """Get current mixture state"""
     return {
         "mixture_state": chemistry_engine.get_state(),
-        "reaction_log": reaction_log[-10:] and YOLOv5"""
+        "reaction_log": reaction_log[-10:]
+    }
+
+@app.post("/api/mixture/reset")
+async def reset_mixture_endpoint():
+    """Reset mixture to initial state"""
+    chemistry_engine.reset()
+    reaction_log.clear()
+    
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    reaction_log.append({
+        "id": 1,
+        "time": timestamp,
+        "reaction": "Lab reset - mixture cleared"
+    })
+    
+    return {
+        "success": True,
+        "mixture_state": chemistry_engine.get_state(),
+        "message": "Mixture reset successfully"
+    }
+
+@app.get("/api/safety/status")
+async def get_safety_status():
+    """Get current safety status"""
+    return {
+        "safety_status": current_safety_status,
+        "yolov5_enabled": yolo_model is not None,
+        "timestamp": datetime.now().isoformat()
+    }
+
+# ============================================================================
+# WEBSOCKET ENDPOINT
+# ============================================================================
+
+@app.websocket("/ws/camera")
+async def websocket_camera_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for streaming camera feed with MediaPipe and YOLOv5"""
     await websocket.accept()
     
     # Open camera
@@ -758,41 +881,7 @@ async def get_mixture_state():
                     "enabled": yolo_model is not None,
                     "person_detected": last_person_bbox is not None,
                     "is_fallen": last_person_bbox.get("is_fallen", False) if last_person_bbox else False
-                }
-                await websocket.send_json({
-                    "error": "Failed to read frame"
-                })
-                break
-            
-            # Process frame with MediaPipe
-            processed_frame, hand_data = process_frame_with_mediapipe(frame)
-            
-            # Add mixture info overlay
-            h, w = processed_frame.shape[:2]
-            cv2.putText(
-                processed_frame,
-                f"pH: {chemistry_engine.current_pH:.2f}",
-                (10, 30),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0, 255, 255),
-                2
-            )
-            
-            # Encode frame to base64
-    if yolo_model:
-        print("🤖 YOLOv5 Fall Detection: ENABLED")
-    else:
-        print("⚠️  YOLOv5 Fall Detection: DISABLED (model not loaded)")
-    print("👋 MediaPipe Hands: ENABLED")
-            frame_base64 = encode_frame_to_base64(processed_frame)
-            
-            # Send data to frontend
-            await websocket.send_json({
-                "frame": frame_base64,
-                "hand_data": hand_data,
-                "mixture_state": chemistry_engine.get_state().dict(),
-                "safety_status": current_safety_status,
+                },
                 "timestamp": datetime.now().isoformat()
             })
             
@@ -816,6 +905,11 @@ async def startup_event():
     print("🚀 SOLVIA Backend Server Started")
     print("📡 WebSocket endpoint: ws://localhost:8000/ws/camera")
     print("📊 API documentation: http://localhost:8000/docs")
+    if yolo_model:
+        print("🤖 YOLOv5 Fall Detection: ENABLED")
+    else:
+        print("⚠️  YOLOv5 Fall Detection: DISABLED (model not loaded)")
+    print("👋 MediaPipe Hands: ENABLED")
 
 if __name__ == "__main__":
     import uvicorn

@@ -6,8 +6,8 @@ import Navigation from '@/components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI-Safe Virtual Lab',
-  description: 'Advanced AI Safety Research Platform',
+  title: 'SOLVIA - Chemistry Laboratory',
+  description: 'Solution Vision-driven Laboratory with Intelligent Analytics - Platform praktikum kimia virtual dengan AI & Computer Vision',
 }
 
 export default function RootLayout({
@@ -17,13 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-cyber-darker min-h-screen`}>
-        <div className="bg-cyber-grid min-h-screen">
-          <Navigation />
-          <main className="container mx-auto px-4 py-8">
-            {children}
-          </main>
-        </div>
+      <body className={inter.className}>
+        {children}
       </body>
     </html>
   )

@@ -4,38 +4,68 @@
 
 :root {
   --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 5, 7, 15;
-  --background-end-rgb: 10, 14, 39;
+  --background-rgb: 11, 17, 32;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: #0B1120;
 }
 
 @layer components {
+  .glow-cyan {
+    filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.8));
+  }
+  
+  .glow-cyan-soft {
+    filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.4));
+  }
+  
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl;
+  }
+  
   .btn-cyber {
-    @apply px-6 py-3 bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-semibold rounded-lg hover:shadow-cyber transition-all duration-300 transform hover:scale-105;
+    @apply px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:shadow-[0_0_20px_rgba(34,211,238,0.5)] transition-all duration-300 transform hover:scale-105;
   }
   
   .card-cyber {
-    @apply bg-cyber-dark border border-cyber-blue/30 rounded-lg p-6 hover:border-cyber-blue/60 transition-all duration-300 hover:shadow-cyber;
-  }
-  
-  .input-cyber {
-    @apply bg-cyber-darker border border-cyber-blue/30 rounded-lg px-4 py-2 text-white focus:border-cyber-blue focus:outline-none focus:ring-2 focus:ring-cyber-blue/50 transition-all;
+    @apply glass-panel hover:border-cyan-400/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(34,211,238,0.2)];
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent;
   }
   
   .nav-link {
-    @apply text-gray-300 hover:text-cyber-blue transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-cyber-blue after:transition-all hover:after:w-full;
+    @apply text-gray-300 hover:text-cyan-400 transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-cyan-400 after:transition-all hover:after:w-full;
+  }
+  
+  .ripple {
+    animation: ripple 0.6s cubic-bezier(0, 0.2, 0.8, 1);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes gauge-fill {
+  from {
+    stroke-dashoffset: 251.2;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
