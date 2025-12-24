@@ -1,0 +1,16 @@
+.gradual-blur {
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+.gradual-blur-inner {
+  pointer-events: none;
+}
+
+.gradual-blur-page {
+  position: fixed;
+}
+
+.gradual-blur-parent {
+  position: absolute;
+}

@@ -534,6 +534,41 @@ def get_safety_status():
         "postureAnalysis": "NORMAL" if not fall_detected else "ALERT"
     })
 
+@app.route('/api/warmup', methods=['GET'])
+def warmup_camera():
+    """Pre-warm camera and models for faster first connection"""
+    global camera
+    try:
+        if camera is None or not camera.isOpened():
+            camera = cv2.VideoCapture(0)
+            # Set low resolution for faster startup
+            camera.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+            camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+            camera.set(cv2.CAP_PROP_FPS, 15)
+            
+            # Read one frame to initialize camera
+            success, frame = camera.read()
+            if success:
+                # Process one frame with MediaPipe to load model
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                hands.process(frame_rgb)
+                
+                return jsonify({
+                    "status": "warmed_up",
+                    "message": "Camera and models pre-loaded successfully",
+                    "resolution": "320x240"
+                })
+        
+        return jsonify({
+            "status": "already_ready",
+            "message": "Camera already initialized"
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @app.route('/api/mixture', methods=['GET'])
 def get_mixture():
     """Get current mixture state"""

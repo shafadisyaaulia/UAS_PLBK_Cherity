@@ -1,192 +1,245 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Navigation from '@/components/Navigation'
+import { Award, Trophy, Target, Zap, Star, Lock, CheckCircle, TrendingUp, FlaskConical, Shield, Clock, RefreshCw } from 'lucide-react'
+import { getAchievements, getUserStats, formatTime, resetAchievements, type Achievement, type UserStats } from '@/lib/achievementSystem'
 
-export default function DataAnalysis() {
-  const [selectedExperiment, setSelectedExperiment] = useState('titration-hcl-naoh')
+export default function AchievementsPage() {
+  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+  const [stats, setStats] = useState<UserStats | null>(null)
+  
+  useEffect(() => {
+    loadData()
+  }, [])
+  
+  const loadData = () => {
+    setAchievements(getAchievements())
+    setStats(getUserStats())
+  }
+  
+  const handleReset = () => {
+    if (confirm('Reset semua achievement dan progress? (Untuk testing)')) {
+      resetAchievements()
+      loadData()
+    }
+  }
+  
+  if (!stats) {
+    return (
+      <>
+        <Navigation />
+        <div className="min-h-screen bg-gradient-to-b from-[#0B1120] via-[#1a1f35] to-[#0B1120] pt-32 flex items-center justify-center">
+          <div className="text-cyan-400 text-xl">Loading...</div>
+        </div>
+      </>
+    )
+  }
 
-  const recentExperiments = [
-    { id: 'titration-hcl-naoh', name: 'Acid-Base Titration (Today)', date: 'Dec 18, 2025' },
-    { id: 'redox-fe-cu', name: 'Redox Reaction Study', date: 'Dec 17, 2025' },
-    { id: 'synthesis-aspirin', name: 'Organic Synthesis - Aspirin', date: 'Dec 15, 2025' },
-    { id: 'kinetics-h2o2', name: 'Chemical Kinetics Analysis', date: 'Dec 14, 2025' },
+
+
+  const categories = [
+    { id: 'all', label: 'Semua', icon: Star },
+    { id: 'beginner', label: 'Pemula', icon: Target },
+    { id: 'mastery', label: 'Penguasaan', icon: Trophy },
+    { id: 'safety', label: 'Keselamatan', icon: Shield },
+    { id: 'special', label: 'Spesial', icon: Zap },
+    { id: 'precision', label: 'Presisi', icon: CheckCircle },
+    { id: 'dedication', label: 'Dedikasi', icon: TrendingUp }
   ]
 
-  const dataPoints = [
-    { point: 1, volume: 0.0, ph: 1.2, notes: 'Initial reading' },
-    { point: 2, volume: 5.0, ph: 1.5, notes: 'Gradual increase' },
-    { point: 3, volume: 10.0, ph: 1.8, notes: 'Stable acidic' },
-    { point: 4, volume: 15.0, ph: 2.3, notes: 'Rising pH' },
-    { point: 5, volume: 20.0, ph: 3.1, notes: 'Accelerating' },
-    { point: 6, volume: 22.0, ph: 4.2, notes: 'Pre-equivalence' },
-    { point: 7, volume: 24.0, ph: 6.8, notes: 'Approaching equivalence' },
-    { point: 8, volume: 25.0, ph: 7.0, notes: 'Equivalence point' },
-    { point: 9, volume: 26.0, ph: 9.2, notes: 'Post-equivalence' },
-    { point: 10, volume: 28.0, ph: 11.5, notes: 'Basic region' },
-    { point: 11, volume: 30.0, ph: 12.3, notes: 'Stable basic' },
-    { point: 12, volume: 35.0, ph: 12.8, notes: 'Final reading' },
-  ]
+  const filteredAchievements = selectedCategory === 'all' 
+    ? achievements 
+    : achievements.filter(a => a.category === selectedCategory)
+
+  const unlockedCount = achievements.filter(a => a.unlocked).length
+  const totalPoints = achievements.filter(a => a.unlocked).reduce((sum, a) => sum + a.points, 0)
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-8rem)]">
-      <div className="w-80 bg-gradient-to-b from-blue-950/90 to-blue-900/80 backdrop-blur-md rounded-lg border-2 border-cyan-500/30 p-6 overflow-y-auto">
-        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-          <span className="text-cyan-400"></span>
-          Recent Experiments
-        </h2>
-        
-        <div className="space-y-3">
-          {recentExperiments.map((exp) => (
-            <button
-              key={exp.id}
-              onClick={() => setSelectedExperiment(exp.id)}
-              className={`w-full text-left p-4 rounded-lg transition-all ${
-                selectedExperiment === exp.id
-                  ? 'bg-cyan-500/30 border-2 border-cyan-400'
-                  : 'bg-blue-900/40 border-2 border-cyan-500/20 hover:border-cyan-400/50'
-              }`}
-            >
-              <p className="text-white font-semibold mb-1">{exp.name}</p>
-              <p className="text-cyan-300/60 text-xs">{exp.date}</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col gap-6 overflow-y-auto">
-        <div className="bg-gradient-to-r from-blue-950/90 to-blue-900/80 backdrop-blur-md rounded-lg border-2 border-cyan-500/30 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-1">Data Analysis</h1>
-              <p className="text-cyan-300/80">Scientific Data Visualization & Analysis</p>
-            </div>
-            <div className="flex gap-3">
-              <button className="px-6 py-3 bg-blue-900/50 border-2 border-cyan-400/40 text-white font-semibold rounded-lg hover:bg-blue-800/60 hover:border-cyan-400 transition-all">
-                 Download
-              </button>
-              <button className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg shadow-[0_0_30px_rgba(0,212,255,0.4)] hover:shadow-[0_0_50px_rgba(0,212,255,0.6)] transition-all border-2 border-cyan-400/50">
-                 Export
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-950/90 to-slate-900/90 backdrop-blur-md rounded-lg border-2 border-cyan-500/30 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Titration Curve: HCl with NaOH</h2>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 bg-blue-900/50 border border-cyan-400/40 text-cyan-300 rounded text-sm hover:bg-blue-800/60 transition-all">
-                 Zoom
-              </button>
-              <button className="px-3 py-1 bg-blue-900/50 border border-cyan-400/40 text-cyan-300 rounded text-sm hover:bg-blue-800/60 transition-all">
-                 Pan
-              </button>
-              <button className="px-3 py-1 bg-blue-900/50 border border-cyan-400/40 text-cyan-300 rounded text-sm hover:bg-blue-800/60 transition-all">
-                 Download
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-slate-900/60 rounded-lg p-8 border border-cyan-400/20 relative h-96">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 -rotate-90 text-cyan-300 font-semibold text-sm">
-              pH
-            </div>
-            
-            <svg className="w-full h-full" viewBox="0 0 600 300">
-              <defs>
-                <pattern id="grid" width="50" height="30" patternUnits="userSpaceOnUse">
-                  <path d="M 50 0 L 0 0 0 30" fill="none" stroke="rgba(0, 212, 255, 0.1)" strokeWidth="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="600" height="300" fill="url(#grid)" />
-              
-              <line x1="40" y1="260" x2="560" y2="260" stroke="rgba(0, 212, 255, 0.4)" strokeWidth="2" />
-              <line x1="40" y1="20" x2="40" y2="260" stroke="rgba(0, 212, 255, 0.4)" strokeWidth="2" />
-              
-              <text x="30" y="260" fill="#6ee7b7" fontSize="10" textAnchor="end">0</text>
-              <text x="30" y="215" fill="#6ee7b7" fontSize="10" textAnchor="end">3</text>
-              <text x="30" y="170" fill="#6ee7b7" fontSize="10" textAnchor="end">6</text>
-              <text x="30" y="125" fill="#6ee7b7" fontSize="10" textAnchor="end">9</text>
-              <text x="30" y="80" fill="#6ee7b7" fontSize="10" textAnchor="end">12</text>
-              <text x="30" y="35" fill="#6ee7b7" fontSize="10" textAnchor="end">14</text>
-              
-              <text x="40" y="280" fill="#6ee7b7" fontSize="10" textAnchor="middle">0</text>
-              <text x="190" y="280" fill="#6ee7b7" fontSize="10" textAnchor="middle">10</text>
-              <text x="340" y="280" fill="#6ee7b7" fontSize="10" textAnchor="middle">20</text>
-              <text x="490" y="280" fill="#6ee7b7" fontSize="10" textAnchor="middle">30</text>
-              
-              <path 
-                d="M 40,252 L 115,245 L 190,238 L 265,225 L 315,205 L 340,175 L 365,95 L 390,60 L 465,40 L 540,32" 
-                fill="none" 
-                stroke="url(#gradient)" 
-                strokeWidth="3"
-                className="drop-shadow-[0_0_10px_rgba(0,212,255,0.8)]"
-              />
-              
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#ef4444" />
-                  <stop offset="50%" stopColor="#facc15" />
-                  <stop offset="100%" stopColor="#22c55e" />
-                </linearGradient>
-              </defs>
-              
-              <circle cx="365" cy="140" r="6" fill="#00d4ff" className="drop-shadow-[0_0_8px_rgba(0,212,255,1)]" />
-              <text x="365" y="125" fill="#00d4ff" fontSize="11" textAnchor="middle" fontWeight="bold">Equivalence</text>
-              
-              {[
-                {x: 40, y: 252}, {x: 115, y: 245}, {x: 190, y: 238}, {x: 265, y: 225},
-                {x: 315, y: 205}, {x: 340, y: 175}, {x: 365, y: 95}, {x: 390, y: 60},
-                {x: 465, y: 40}, {x: 540, y: 32}
-              ].map((point, i) => (
-                <circle key={i} cx={point.x} cy={point.y} r="3" fill="#00d4ff" opacity="0.7" />
-              ))}
-            </svg>
-            
-            <div className="text-center mt-2 text-cyan-300 font-semibold text-sm">
-              Volume (mL)
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-blue-950/90 to-slate-900/90 backdrop-blur-md rounded-lg border-2 border-cyan-500/30 p-6">
-          <h2 className="text-2xl font-bold text-white mb-6">Experimental Data Points</h2>
+    <>
+      <Navigation />
+      <div className="min-h-screen bg-gradient-to-b from-[#0B1120] via-[#1a1f35] to-[#0B1120] pt-20 px-6 pb-12">
+        <div className="max-w-7xl mx-auto">
           
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-cyan-400/40">
-                  <th className="text-left py-3 px-4 text-cyan-300 font-semibold">Data Point</th>
-                  <th className="text-left py-3 px-4 text-cyan-300 font-semibold">Volume (mL)</th>
-                  <th className="text-left py-3 px-4 text-cyan-300 font-semibold">pH</th>
-                  <th className="text-left py-3 px-4 text-cyan-300 font-semibold">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataPoints.map((data, index) => (
-                  <tr 
-                    key={index} 
-                    className="border-b border-cyan-400/20 hover:bg-cyan-500/10 transition-colors"
-                  >
-                    <td className="py-3 px-4 text-white font-mono">{data.point}</td>
-                    <td className="py-3 px-4 text-cyan-100">{data.volume.toFixed(1)}</td>
-                    <td className="py-3 px-4">
-                      <span className={`font-semibold ${
-                        data.ph < 5 ? 'text-red-400' :
-                        data.ph < 8 ? 'text-yellow-400' :
-                        'text-green-400'
-                      }`}>
-                        {data.ph.toFixed(1)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-cyan-100/70 text-sm">{data.notes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Header */}
+          <div className="text-center mb-12 pt-12">
+            <div className="inline-flex items-center gap-2 glass-card border-cyan-400/30 px-4 py-2 mb-6">
+              <Trophy className="w-5 h-5 text-yellow-400" />
+              <span className="text-cyan-300 text-sm font-medium">Achievement System</span>
+            </div>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <h1 className="text-5xl md:text-6xl font-bold text-gradient">
+                Pencapaian Kamu
+              </h1>
+              <button
+                onClick={handleReset}
+                className="glass-card border-cyan-400/30 p-2 rounded-lg hover:bg-cyan-500/20 transition-all"
+                title="Reset Progress (Testing)"
+              >
+                <RefreshCw className="w-5 h-5 text-cyan-400" />
+              </button>
+            </div>
+            <p className="text-cyan-100/60 text-lg max-w-2xl mx-auto">
+              Unlock badge dan raih semua achievement untuk menjadi Chemistry Master!
+            </p>
           </div>
+
+          {/* Stats Overview */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <div className="glass-panel border-cyan-400/30 p-6 text-center">
+              <FlaskConical className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+              <div className="text-3xl font-bold text-cyan-100 mb-1">{stats.completedExperiments}/{stats.totalExperiments}</div>
+              <div className="text-cyan-100/60 text-sm">Praktikum</div>
+            </div>
+            
+            <div className="glass-panel border-purple-400/30 p-6 text-center">
+              <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+              <div className="text-3xl font-bold text-cyan-100 mb-1">{unlockedCount}/{achievements.length}</div>
+              <div className="text-cyan-100/60 text-sm">Achievement</div>
+            </div>
+            
+            <div className="glass-panel border-green-400/30 p-6 text-center">
+              <Star className="w-8 h-8 text-green-400 mx-auto mb-2" />
+              <div className="text-3xl font-bold text-cyan-100 mb-1">{totalPoints}</div>
+              <div className="text-cyan-100/60 text-sm">Total Poin</div>
+            </div>
+            
+            <div className="glass-panel border-orange-400/30 p-6 text-center">
+              <Clock className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+              <div className="text-3xl font-bold text-cyan-100 mb-1">{formatTime(stats.totalTime)}</div>
+              <div className="text-cyan-100/60 text-sm">Waktu Belajar</div>
+            </div>
+          </div>
+
+          {/* Level Progress */}
+          <div className="glass-panel border-cyan-400/30 p-8 mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-cyan-100 mb-1">Level: {stats.level}</h3>
+                <p className="text-cyan-100/60">Next: {stats.nextLevel}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-cyan-400">{stats.progress}%</div>
+                <p className="text-cyan-100/60 text-sm">Progress</p>
+              </div>
+            </div>
+            <div className="relative w-full h-4 bg-cyan-950/50 rounded-full overflow-hidden">
+              <div 
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                style={{ width: `${stats.progress}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-3 mb-8 justify-center">
+            {categories.map(cat => {
+              const Icon = cat.icon
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                    selectedCategory === cat.id
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg glow-cyan'
+                      : 'glass-card border-cyan-400/30 text-cyan-100 hover:border-cyan-400/50'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  {cat.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Achievements Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAchievements.map(achievement => (
+              <div
+                key={achievement.id}
+                className={`relative glass-panel border-2 p-6 transition-all hover:scale-105 ${
+                  achievement.unlocked
+                    ? 'border-cyan-400/50 hover:border-cyan-400'
+                    : 'border-cyan-400/20 opacity-60'
+                }`}
+              >
+                {/* Badge Icon */}
+                <div className={`absolute -top-4 left-6 w-16 h-16 rounded-2xl bg-gradient-to-br ${achievement.color} flex items-center justify-center text-4xl shadow-lg ${
+                  !achievement.unlocked && 'grayscale opacity-50'
+                }`}>
+                  {achievement.unlocked ? achievement.icon : '🔒'}
+                </div>
+
+                <div className="pt-10">
+                  {/* Title & Points */}
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-bold text-cyan-100">{achievement.title}</h3>
+                    <div className="flex items-center gap-1 glass-card border-cyan-400/30 px-3 py-1 rounded-full">
+                      <Star className="w-4 h-4 text-yellow-400" />
+                      <span className="text-cyan-100 font-semibold text-sm">{achievement.points}</span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-cyan-100/60 text-sm mb-4">{achievement.description}</p>
+
+                  {/* Status */}
+                  {achievement.unlocked ? (
+                    <div className="flex items-center gap-2 text-green-400">
+                      <CheckCircle className="w-5 h-5" />
+                      <span className="font-semibold">Unlocked on {achievement.date}</span>
+                    </div>
+                  ) : achievement.progress !== undefined ? (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-cyan-100/60 text-sm">Progress</span>
+                        <span className="text-cyan-400 font-semibold text-sm">{achievement.progress}%</span>
+                      </div>
+                      <div className="relative w-full h-2 bg-cyan-950/50 rounded-full overflow-hidden">
+                        <div 
+                          className={`absolute top-0 left-0 h-full bg-gradient-to-r ${achievement.color} rounded-full transition-all duration-500`}
+                          style={{ width: `${achievement.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-cyan-100/40">
+                      <Lock className="w-5 h-5" />
+                      <span className="font-semibold">Locked</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Recent Achievements */}
+          {achievements.some(a => a.unlocked) && (
+            <div className="mt-12">
+              <h2 className="text-3xl font-bold text-cyan-100 mb-6 text-center">🎊 Recent Achievements</h2>
+              <div className="grid md:grid-cols-3 gap-4">
+                {achievements.filter(a => a.unlocked).slice(0, 3).map(achievement => (
+                  <div key={achievement.id} className="glass-panel border-cyan-400/30 p-4 flex items-center gap-4">
+                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${achievement.color} flex items-center justify-center text-2xl`}>
+                      {achievement.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-cyan-100 font-bold">{achievement.title}</h4>
+                      <p className="text-cyan-100/60 text-sm">{achievement.date}</p>
+                    </div>
+                    <div className="flex items-center gap-1 text-yellow-400">
+                      <Star className="w-4 h-4" />
+                      <span className="font-bold">{achievement.points}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
-    </div>
+    </>
   )
 }

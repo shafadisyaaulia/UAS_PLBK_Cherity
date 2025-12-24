@@ -11,6 +11,7 @@ interface HandData {
   hands_detected: boolean
   landmarks: any[]
   gesture: string
+  pointer_position?: { x: number; y: number }
 }
 
 interface MixtureState {

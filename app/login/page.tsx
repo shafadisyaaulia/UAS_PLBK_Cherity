@@ -14,7 +14,7 @@ export default function Login() {
     e.preventDefault()
     // Simulate login - in production, implement proper authentication
     console.log('Login attempt:', { username, password, rememberMe })
-    router.push('/dashboard')
+    router.push('/praktikum/ph-meter')
   }
 
   return (
