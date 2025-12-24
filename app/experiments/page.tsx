@@ -559,7 +559,7 @@ export default function QuizPage() {
             </h3>
             
             <div className="space-y-3">
-              {currentQ.options.map((option, idx) => {
+              {currentQ.options.map((option: string, idx: number) => {
                 const isSelected = selectedAnswers[currentQuestion] === idx
                 return (
                   <button
