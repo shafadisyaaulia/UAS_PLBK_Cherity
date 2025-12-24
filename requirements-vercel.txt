@@ -1,0 +1,9 @@
+# Lightweight requirements for Vercel Serverless
+fastapi==0.109.0
+mangum==0.17.0
+pydantic==2.5.3
+python-multipart==0.0.6
+
+# Note: Heavy dependencies (torch, opencv) removed for serverless
+# Full detection features available in local mode
+# Serverless focuses on API endpoints and data processing
