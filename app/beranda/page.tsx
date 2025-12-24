@@ -1,6 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import SupabaseProfileDemo from '@/components/SupabaseProfileDemo'
+import SupabaseAuthDemo from '@/components/SupabaseAuthDemo'
+// Import PoseDetector secara dinamis agar hanya di-load di client
+const PoseDetector = dynamic(() => import('@/components/PoseDetector'), { ssr: false })
 import { FlaskConical, Sparkles, BookOpen, Camera, Beaker, TestTube, BarChart3, Users, ArrowRight, Play, Shield, Brain, Hand, MousePointer2, Zap, Droplet, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -133,6 +138,18 @@ export default function BerandaPage() {
                 Platform pembelajaran kimia revolusioner dengan teknologi Computer Vision dan AI. 
                 Praktikum aman, interaktif, dan menyenangkan untuk semua tingkat pendidikan.
               </p>
+              {/* Demo Computer Vision Serverless */}
+              <div className="flex flex-col items-center justify-center py-8">
+                <div className="mb-2 text-cyan-200 font-semibold">Demo Pose Detection (MediaPipe JS, 100% di browser)</div>
+                <div className="rounded-xl border-2 border-cyan-400/30 bg-black/40 shadow-lg">
+                  <PoseDetector />
+                </div>
+                <div className="text-xs text-cyan-300/60 mt-2">Tidak ada data dikirim ke server. Semua proses AI di browser kamu.</div>
+                <div className="mt-6">
+                  <SupabaseProfileDemo />
+                  <SupabaseAuthDemo />
+                </div>
+              </div>
             </div>
 
             {/* CTA Buttons */}
