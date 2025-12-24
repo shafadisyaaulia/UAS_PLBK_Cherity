@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Camera, Hand, MousePointer2, Play, X, CheckCircle, AlertTriangle, Droplet, FlaskConical, RotateCcw, ImagePlus, Beaker, Wifi, WifiOff, Plus, ArrowLeft, Info, Download, BookOpen, Thermometer, AlertCircle, XCircle, RefreshCw } from 'lucide-react'
+import { Camera, Hand, MousePointer2, Play, X, CheckCircle, AlertTriangle, Droplet, FlaskConical, RotateCcw, ImagePlus, Beaker, Wifi, WifiOff, Plus, ArrowLeft, Info, Download, BookOpen, Thermometer, AlertCircle, XCircle, RefreshCw, Award } from 'lucide-react'
 import { useSolviaWebSocket, addChemical, resetMixture, getMixtureState } from '../../hooks/useSolviaWebSocket'
 import CircularGauge from '../../../components/CircularGauge'
 import BeakerVisualization from '../../../components/BeakerVisualization'
