@@ -59,7 +59,7 @@ function DashboardContent() {
   const [currentExperiment, setCurrentExperiment] = useState<Experiment | null>(null)
   const [experimentStep, setExperimentStep] = useState(0)
   const [temperature, setTemperature] = useState(25) // Room temperature
-  const [bubbles, setBubbles] = useState<{ id: number; x: number; y: number }[]>([])
+  const [bubbles, setBubbles] = useState<{ id: number; x: number; y: number; size: number }[]>([])
   const [praktikumStartTime, setPraktikumStartTime] = useState<number | null>(null)
   const [showAchievementNotif, setShowAchievementNotif] = useState(false)
   const [connectionTimeout, setConnectionTimeout] = useState(false)
