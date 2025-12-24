@@ -1,115 +1,19 @@
 name: Deploy AI-Safe Virtual Lab
 
+# Disabled: Vercel handles deployment automatically
+# This workflow is kept for reference only
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
-  # Job 1: Test dan Build Frontend
-  frontend:
+  # Vercel auto-deploys on push to main
+  # No need for separate GitHub Actions workflow
+  placeholder:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Next.js app
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: nextjs-build
-          path: .next
-          retention-days: 1
-
-  # Job 2: Test Backend
-  backend:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-
-      - name: Install Python dependencies
+      - name: Info
         run: |
-          cd api
-          pip install -r requirements.txt
-
-      - name: Run backend tests (if any)
-        run: |
-          cd api
-          # python -m pytest tests/  # Uncomment when tests are ready
-
-  # Job 3: Deploy to Vercel (Frontend)
-  deploy-frontend:
-    needs: [frontend, backend]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: nextjs-build
-          path: .next
-
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./
-
-  # Job 4: Deploy Backend to Render (Free Alternative)
-  deploy-backend:
-    needs: backend
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Trigger Render Deploy
-        run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-        continue-on-error: true
-
-  # Job 5: Notify deployment status
-  notify:
-    needs: [deploy-frontend, deploy-backend]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-      - name: Send notification
-        run: |
-          echo "Deployment completed!"
-          # Add Discord/Slack webhook here if needed
+          echo "✅ Deployment handled by Vercel automatically"
+          echo "📦 Frontend: Auto-deployed from GitHub"
+          echo "🐍 Backend: Serverless functions in /api"
+          echo "🚀 No manual deployment needed!"
