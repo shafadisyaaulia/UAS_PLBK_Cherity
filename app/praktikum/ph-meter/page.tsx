@@ -1506,7 +1506,8 @@ function DashboardContent() {
 
       {showExperimentSelector && (
         <ExperimentSelector
-          onSelect={handleSelectExperiment}
+          isOpen={showExperimentSelector}
+          onSelectExperiment={handleSelectExperiment}
           onClose={() => {
             setShowExperimentSelector(false)
             sound.click()
