@@ -6,7 +6,7 @@ python-multipart==0.0.6
 
 # Computer Vision & AI
 opencv-python==4.10.0.84
-mediapipe==0.10.20
+mediapipe==0.10.30
 numpy>=1.26.0
 
 # YOLOv5 for Fall Detection
