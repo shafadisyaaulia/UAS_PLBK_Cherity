@@ -1486,6 +1486,7 @@ function DashboardContent() {
       {showChemicalModal && selectedChemicalInfo && (
         <ChemicalModal
           chemical={selectedChemicalInfo}
+          isOpen={showChemicalModal}
           onClose={() => {
             setShowChemicalModal(false)
             sound.click()
