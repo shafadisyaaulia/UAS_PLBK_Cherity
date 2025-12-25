@@ -5,6 +5,29 @@
 /.pnp
 .pnp.js
 
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# backend & dev only
+.venv/
+api/
+UAS-PROJEK/
+start-backend.ps1
+start-frontend.ps1
+start-solvia.ps1
+serverless.py
+requirements-vercel.txt
+requirements.txt
+server.py
+Dockerfile
+index.py
+main.py
+test_api.py
+Sigmoid_*
+*.ipynb
+
 # testing
 /coverage
 
