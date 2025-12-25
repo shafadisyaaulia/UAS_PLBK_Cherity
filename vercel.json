@@ -1,21 +1,5 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "outputDirectory": ".next",
-  "regions": ["sin1"],
-  "functions": {
-    "api/**/*.py": {
-      "runtime": "python3.9",
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
+  "builds": [
+    { "src": "next.config.js", "use": "@vercel/next" }
   ]
 }
