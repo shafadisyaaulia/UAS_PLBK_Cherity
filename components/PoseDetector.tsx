@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { Pose } from "@mediapipe/pose";
-import "@mediapipe/pose/pose.css";
+// import "@mediapipe/pose/pose.css";
 
 export default function PoseDetector() {
   const videoRef = useRef<HTMLVideoElement>(null);
