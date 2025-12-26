@@ -145,10 +145,7 @@ export default function BerandaPage() {
                   <PoseDetector />
                 </div>
                 <div className="text-xs text-cyan-300/60 mt-2">Tidak ada data dikirim ke server. Semua proses AI di browser kamu.</div>
-                <div className="mt-6">
-                  <SupabaseProfileDemo />
-                  <SupabaseAuthDemo />
-                </div>
+                {/* Login/profile info now moved to navbar dropdown */}
               </div>
             </div>
 

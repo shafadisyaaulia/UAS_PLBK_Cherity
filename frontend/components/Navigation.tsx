@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 import { 
   FlaskConical, 
   Home, 
@@ -23,6 +24,37 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user || null);
+    };
+    fetchUser();
+  }, [])
+
+  const handleLogin = async (role: 'guru' | 'siswa') => {
+    setLoading(true);
+    setError(null);
+    const email = role === 'guru' ? 'guru@demo.com' : 'siswa@demo.com';
+    const { error } = await supabase.auth.signInWithPassword({ email, password: 'demopassword' });
+    if (error) setError(error.message);
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user || null);
+    setLoading(false);
+    setShowUserMenu(false);
+  };
+
+  const handleLogout = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
+    setUser(null);
+    setLoading(false);
+    setShowUserMenu(false);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -199,7 +231,7 @@ export default function Navigation() {
                     </div>
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-gray-900 rounded-full" />
                   </div>
-                  <span className="hidden md:block text-cyan-100 text-sm font-semibold">Guest</span>
+                  <span className="hidden md:block text-cyan-100 text-sm font-semibold">{user ? user.email : 'Guest'}</span>
                   <ChevronDown className="w-4 h-4 text-cyan-400/70 group-hover:text-cyan-400 transition-transform group-hover:rotate-180" />
                 </button>
 
@@ -211,25 +243,39 @@ export default function Navigation() {
                           <User className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <div className="text-cyan-100 font-bold">Guest User</div>
-                          <div className="text-cyan-400/60 text-xs">guest@solvia.lab</div>
+                          <div className="text-cyan-100 font-bold">{user ? user.email : 'Guest User'}</div>
+                          <div className="text-cyan-400/60 text-xs">{user ? user.id : 'guest@solvia.lab'}</div>
                         </div>
                       </div>
                     </div>
-                    
                     <div className="p-2">
-                      <button className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-cyan-500/10 transition-colors group w-full">
+                      {!user && (
+                        <>
+                          <button onClick={() => handleLogin('guru')} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-500/10 transition-colors group w-full">
+                            <User className="w-4 h-4 text-blue-400/70 group-hover:text-blue-400" />
+                            <span className="text-blue-400/80 text-sm">Login Guru</span>
+                          </button>
+                          <button onClick={() => handleLogin('siswa')} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-green-500/10 transition-colors group w-full mt-2">
+                            <User className="w-4 h-4 text-green-400/70 group-hover:text-green-400" />
+                            <span className="text-green-400/80 text-sm">Login Siswa</span>
+                          </button>
+                        </>
+                      )}
+                      <button className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-cyan-500/10 transition-colors group w-full mt-2">
                         <Settings className="w-4 h-4 text-cyan-400/70 group-hover:text-cyan-400" />
                         <span className="text-cyan-100/80 text-sm">Settings</span>
                       </button>
                     </div>
-
                     <div className="p-2 border-t border-cyan-400/20">
-                      <button className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors group w-full">
-                        <LogOut className="w-4 h-4 text-red-400/70 group-hover:text-red-400" />
-                        <span className="text-red-400/80 text-sm">Logout</span>
-                      </button>
+                      {user && (
+                        <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors group w-full">
+                          <LogOut className="w-4 h-4 text-red-400/70 group-hover:text-red-400" />
+                          <span className="text-red-400/80 text-sm">Logout</span>
+                        </button>
+                      )}
                     </div>
+                    {loading && <div className="text-cyan-300 text-center py-2">Loading...</div>}
+                    {error && <div className="text-red-400 text-center py-2">{error}</div>}
                   </div>
                 )}
               </div>

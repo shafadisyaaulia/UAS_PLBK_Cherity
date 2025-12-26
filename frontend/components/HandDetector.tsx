@@ -1,38 +1,52 @@
 import React, { useRef, useEffect } from "react";
-import { Pose } from "@mediapipe/pose";
-// import "@mediapipe/pose/pose.css";
+import { Hands } from "@mediapipe/hands";
 
-export default function PoseDetector() {
+// Simple callback interface for gesture events
+interface HandDetectorProps {
+  onPinch?: (pointer: { x: number; y: number }) => void;
+  onPoint?: (pointer: { x: number; y: number }) => void;
+}
+
+export default function HandDetector({ onPinch, onPoint }: HandDetectorProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const pose = new Pose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
     });
-
-    pose.setOptions({
+    hands.setOptions({
+      maxNumHands: 1,
       modelComplexity: 1,
-      smoothLandmarks: true,
-      enableSegmentation: false,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5,
     });
 
-    pose.onResults((results) => {
+    hands.onResults((results) => {
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (results.segmentationMask) {
-        ctx.drawImage(results.segmentationMask, 0, 0, canvas.width, canvas.height);
-      }
-      if (results.poseLandmarks) {
-        for (const landmark of results.poseLandmarks) {
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+        // Draw landmarks
+        for (const lm of landmarks) {
           ctx.beginPath();
-          ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 5, 0, 2 * Math.PI);
-          ctx.fillStyle = "red";
+          ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = "#00ff00";
           ctx.fill();
+        }
+        // Gesture detection: pinch (thumb tip & index tip close)
+        const thumbTip = landmarks[4];
+        const indexTip = landmarks[8];
+        const dx = thumbTip.x - indexTip.x;
+        const dy = thumbTip.y - indexTip.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const pointer = { x: indexTip.x, y: indexTip.y };
+        if (dist < 0.06 && onPinch) {
+          onPinch(pointer);
+        } else if (onPoint) {
+          onPoint(pointer);
         }
       }
     });
@@ -49,24 +63,21 @@ export default function PoseDetector() {
           canvasRef.current!.width = 640;
           canvasRef.current!.height = 480;
           const detect = async () => {
-            await pose.send({ image: video });
+            await hands.send({ image: video });
             requestAnimationFrame(detect);
           };
           detect();
         };
       }
     };
-
     startCamera();
-
     return () => {
-      // Cleanup: stop camera
       const video = videoRef.current;
       if (video && video.srcObject) {
         (video.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [onPinch, onPoint]);
 
   return (
     <div>
