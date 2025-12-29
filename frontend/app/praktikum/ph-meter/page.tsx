@@ -1,543 +1,272 @@
-﻿
-"use client";
-import React, { useRef } from "react";
-import { useSolviaWebSocket } from "../../hooks/useSolviaWebSocket";
+﻿"use client";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import Navigation from "@/components/Navigation";
+import { 
+  FlaskConical, Zap, FileText, RefreshCw, 
+  ShieldAlert, Info, CheckCircle2
+} from "lucide-react";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 
-// VirtualCursor: Lingkaran cyan bercahaya mengikuti pointer_position dari WebSocket
-function VirtualCursor({ pointer }: { pointer?: { x: number; y: number } }) {
-  if (!pointer) return null;
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: pointer.x,
-        top: pointer.y,
-        transform: "translate(-50%, -50%)",
-        pointerEvents: "none",
-        zIndex: 50,
-      }}
-    >
-      <div className="w-10 h-10 rounded-full border-4 border-cyan-400 shadow-[0_0_32px_8px_rgba(34,211,238,0.5)] animate-pulse bg-cyan-400/10" />
-    </div>
-  );
-}
+const CHEMICALS = [
+  { id: 'hcl', name: 'HCl', fullName: 'Asam Klorida', ph: 1.0, color: "#ff4d4d", fact: "Cairan ini juga ada di lambungmu untuk mencerna makanan!" },
+  { id: 'vinegar', name: 'CH3COOH', fullName: 'Asam Asetat', ph: 3.0, color: "#ffcc00", fact: "Ini adalah bahan utama cuka makan. Baunya sangat tajam!" },
+  { id: 'h2o', name: 'H2O', fullName: 'Air Murni', ph: 7.0, color: "#22c55e", fact: "Air murni bersifat netral. Tubuhmu 70% terdiri dari air." },
+  { id: 'koh', name: 'KOH', fullName: 'Kalium Hidroksida', ph: 12.5, color: "#3b82f6", fact: "Sering digunakan sebagai bahan pembuat sabun mandi." },
+  { id: 'naoh', name: 'NaOH', fullName: 'Natrium Hidroksida', ph: 13.7, color: "#a855f7", fact: "Dikenal sebagai soda api, bisa melarutkan sumbatan pipa!" },
+];
 
-// BeakerVisualization: Warna cairan berubah sesuai pH
-function BeakerVisualization({ ph }: { ph: number }) {
-  // pH 0 (merah) - 7 (hijau) - 14 (ungu)
-  function getColor(ph: number) {
-    if (ph <= 2) return "bg-red-500";
-    if (ph <= 6) return "bg-yellow-400";
-    if (ph <= 8) return "bg-green-400";
-    if (ph <= 11) return "bg-blue-500";
-    return "bg-purple-500";
-  }
-  return (
-    <div className="flex flex-col items-center">
-      <div className="w-24 h-36 bg-white/10 rounded-b-3xl border-4 border-cyan-400 relative overflow-hidden shadow-xl">
-        <div
-          className={`absolute bottom-0 left-0 w-full transition-all duration-500 ${getColor(ph)}`}
-          style={{ height: `${Math.max(10, (ph / 14) * 100)}%` }}
-        />
-      </div>
-      <span className="text-xs text-cyan-300 mt-2">pH: {ph.toFixed(2)}</span>
-    </div>
-  );
-}
+const getPhColor = (ph: number) => {
+  if (ph <= 3) return "#ff4d4d"; 
+  if (ph <= 6) return "#ffcc00"; 
+  if (ph >= 6.5 && ph <= 7.5) return "#22c55e"; 
+  if (ph <= 11) return "#3b82f6"; 
+  return "#a855f7"; 
+};
 
-export default function PhMeterPage() {
+export default function SolviaSMPEditon() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { frame, handData, mixtureState, safetyStatus } = useSolviaWebSocket();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
-  // Dummy fallback
-  const phValue = mixtureState?.current_pH ?? 7;
-  const temperature = mixtureState?.total_volume ?? 25;
-  const reactionName = mixtureState?.reaction_name ?? "-";
-  const pointer = handData?.pointer_position;
+  const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<'drag' | 'cv'>('drag');
+  const [phValue, setPhValue] = useState(7.0);
+  const [volume, setVolume] = useState(0);
+  const [history, setHistory] = useState<any[]>([]);
+  const [isHandDetected, setIsHandDetected] = useState(false);
+  const [hoverTarget, setHoverTarget] = useState<string | null>(null);
+  const [hoverProgress, setHoverProgress] = useState(0);
 
+  useEffect(() => { setMounted(true); }, []);
+
+  const mixChemical = useCallback((id: string) => {
+    const chem = CHEMICALS.find(c => c.id === id);
+    if (!chem) return;
+    setPhValue(prev => Math.round(((prev * 0.7) + (chem.ph * 0.3)) * 100) / 100);
+    setVolume(v => Math.min(v + 10, 100));
+    setHistory(prev => [...prev, { ...chem, time: new Date().toLocaleTimeString('id-ID'), volAdded: "10mL" }]);
+  }, []);
+
+  // AI VISION ENGINE WITH DRAWING UTILS
+  useEffect(() => {
+    if (mode !== 'cv') return;
+    let camera: any;
+
+    const setupAI = async () => {
+      if (!videoRef.current || !canvasRef.current) return;
+
+      const { Hands, HAND_CONNECTIONS } = await import('@mediapipe/hands');
+      const { Camera: MpCamera } = await import('@mediapipe/camera_utils');
+      const { drawConnectors, drawLandmarks } = await import('@mediapipe/drawing_utils');
+      
+      const hands = new Hands({ 
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}` 
+      });
+
+      hands.setOptions({ 
+        maxNumHands: 1, 
+        modelComplexity: 1, 
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+      });
+
+      hands.onResults((results: any) => {
+        const canvasCtx = canvasRef.current!.getContext('2d');
+        if (!canvasCtx) return;
+
+        // 1. Clear Canvas & Mirroring
+        canvasCtx.save();
+        canvasCtx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+        
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          setIsHandDetected(true);
+          
+          for (const landmarks of results.multiHandLandmarks) {
+            // 2. Menggambar Garis Sendi (Neon Style)
+            drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+              color: '#00ffff',
+              lineWidth: 3
+            });
+            
+            // 3. Menggambar Titik Sendi
+            drawLandmarks(canvasCtx, landmarks, {
+              color: '#ff00ff',
+              lineWidth: 1,
+              radius: 4
+            });
+
+            // 4. Deteksi Interaksi (Ujung Jari Telunjuk - Landmark 8)
+            const indexTip = landmarks[8];
+            const x = (1 - indexTip.x) * 100; // Inverse karena video mirror
+            const y = indexTip.y * 100;
+
+            // Efek Glow di Jari
+            canvasCtx.beginPath();
+            canvasCtx.arc(indexTip.x * canvasRef.current!.width, indexTip.y * canvasRef.current!.height, 15, 0, 2 * Math.PI);
+            canvasCtx.fillStyle = "rgba(0, 255, 255, 0.3)";
+            canvasCtx.fill();
+
+            if (y > 75) {
+              const sectorSize = 100 / CHEMICALS.length;
+              const sector = Math.floor(x / sectorSize);
+              const target = CHEMICALS[sector]?.id;
+              
+              if (target) {
+                setHoverTarget(target);
+                setHoverProgress(p => {
+                  if (p >= 100) {
+                    mixChemical(target);
+                    return 0;
+                  }
+                  return p + 4; // Kecepatan mengisi
+                });
+              }
+            } else {
+              setHoverTarget(null);
+              setHoverProgress(0);
+            }
+          }
+        } else {
+          setIsHandDetected(false);
+          setHoverTarget(null);
+          setHoverProgress(0);
+        }
+        canvasCtx.restore();
+      });
+
+      camera = new MpCamera(videoRef.current, { 
+        onFrame: async () => {
+          if (videoRef.current) await hands.send({ image: videoRef.current });
+        }, 
+        width: 1280, 
+        height: 720 
+      });
+      camera.start();
+    };
+
+    setupAI();
+    return () => { if (camera) camera.stop(); };
+  }, [mode, mixChemical]);
+
+  // PDF Export Logic (Stable)
+  const handleExportPDF = async () => {
+    if (!reportRef.current) return;
+    const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL("image/jpeg", 1.0);
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(imgData, "JPEG", 0, 0, 210, (canvas.height * 210) / canvas.width);
+    pdf.save(`Laporan_Solvia_${Date.now()}.pdf`);
+  };
+
+  if (!mounted) return null;
+// --- TAMBAHKAN BARIS INI ---
+  const currentChemInfo = CHEMICALS.find(c => c.id === hoverTarget) || 
+                          CHEMICALS.find(c => c.id === history[history.length - 1]?.id);
+  // ---------------------------
   return (
-    <div className="min-h-screen w-full bg-[#0B1120] flex flex-col items-center justify-center p-0">
-      {/* Virtual Cursor */}
-      <VirtualCursor pointer={pointer} />
-      <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-8 py-12 px-4 md:px-0">
-        {/* Kiri: Video Feed + Safety Overlay */}
-        <div className="relative flex items-center justify-center">
-          <div className="rounded-3xl border-4 border-cyan-400 shadow-[0_0_32px_8px_rgba(34,211,238,0.3)] overflow-hidden">
-            {frame ? (
-              <img
-                src={frame}
-                alt="Camera Feed"
-                className="w-full h-96 object-cover bg-black"
-              />
-            ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                width={480}
-                height={384}
-                className="w-full h-96 object-cover bg-black"
-              />
-            )}
-          </div>
-          {/* Safety Alert Overlay */}
-          {safetyStatus === "danger" && (
-            <div className="absolute inset-0 bg-red-600/40 flex items-center justify-center z-20 animate-pulse">
-              <span className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
-                ⚠️ FALL DETECTED - SAFETY PROTOCOL ACTIVE
-              </span>
+    <div className="min-h-screen bg-[#02040a] text-white p-4 font-sans overflow-hidden">
+      {/* NAVBAR AT THE TOP */}
+      <Navigation />
+      
+      {/* HEADER REMOVED: digantikan oleh Navigation di atas */}
+
+      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-120px)] mt-20">
+        {/* MAIN SIMULATOR */}
+        <div className="col-span-8 relative bg-black rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
+          {/* Mode Switcher & Export PDF at top-right */}
+          <div className="absolute top-6 right-8 z-30 flex gap-3">
+            <div className="flex bg-black/50 p-1 rounded-xl border border-white/10">
+              <button onClick={() => setMode('drag')} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${mode === 'drag' ? 'bg-cyan-600' : 'text-slate-500'}`}>MOUSE</button>
+              <button onClick={() => setMode('cv')} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold ${mode === 'cv' ? 'bg-purple-600' : 'text-slate-500'}`}>AI VISION</button>
             </div>
-          )}
-        </div>
-        {/* Kanan: Sidebar Statistik (Glassmorphism) */}
-        <div className="flex flex-col gap-6">
-          <div className="rounded-2xl bg-white/5 backdrop-blur-md p-6 shadow-lg border border-cyan-400/30">
-            <h2 className="text-cyan-400 text-lg font-bold mb-2">Lab Statistics</h2>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <span className="text-cyan-200">pH Value</span>
-                <span className="font-mono text-cyan-300 text-xl">{phValue.toFixed(2)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-cyan-200">Temperature</span>
-                <span className="font-mono text-cyan-300 text-xl">{temperature}°C</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-cyan-200">Reaction</span>
-                <span className="font-mono text-cyan-300 text-lg">{reactionName}</span>
+            <button onClick={handleExportPDF} className="bg-white text-black px-5 py-1.5 rounded-xl text-[10px] font-black hover:bg-cyan-400 transition-colors">EXPORT PDF</button>
+          </div>
+          <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 -scale-x-100" />
+          {/* CANVAS UNTUK DRAWING SKELETON */}
+          <canvas ref={canvasRef} width={1280} height={720} className="absolute inset-0 w-full h-full object-cover -scale-x-100 z-10 pointer-events-none" />
+          
+          {/* UI HUD: pH SENSOR */}
+          <div className="absolute top-10 left-10 z-20">
+            <div className="bg-black/80 backdrop-blur-xl p-8 rounded-[2.5rem] border-t border-l border-white/20 shadow-2xl" style={{ borderLeft: `8px solid ${getPhColor(phValue)}` }}>
+              <p className="text-[10px] font-black text-cyan-500 tracking-[0.2em] mb-1">ANALYSIS ACTIVE</p>
+              <h2 className="text-7xl font-black tracking-tighter mb-2">{phValue.toFixed(1)}</h2>
+              <div className="text-[11px] font-bold px-4 py-1.5 rounded-full inline-block" style={{ backgroundColor: getPhColor(phValue), color: 'black' }}>
+                {phValue < 7 ? 'ACIDIC' : phValue > 7 ? 'ALKALINE' : 'NEUTRAL'}
               </div>
             </div>
           </div>
-          <div className="rounded-2xl bg-white/5 backdrop-blur-md p-6 shadow-lg border border-cyan-400/30 flex flex-col items-center">
-            <h2 className="text-cyan-400 text-lg font-bold mb-4">Interactive Beaker</h2>
-            <BeakerVisualization ph={phValue} />
+
+          {/* THE BEAKER */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-56 h-72 border-x-[6px] border-b-[6px] border-white/20 rounded-b-[70px] relative overflow-hidden bg-white/5 backdrop-blur-[2px] shadow-inner">
+              <div className="absolute bottom-0 w-full transition-all duration-700 ease-out" style={{ height: `${volume}%`, backgroundColor: getPhColor(phValue), opacity: 0.5, boxShadow: `0 0 50px ${getPhColor(phValue)}` }} />
+            </div>
+          </div>
+
+          {/* INTERACTIVE CHEMICAL TRAY */}
+          <div className="absolute bottom-10 inset-x-0 flex justify-center gap-6 z-30">
+            {CHEMICALS.map((c) => (
+              <div key={c.id} className="relative group">
+                {/* Progress Ring saat Hover AI */}
+                {hoverTarget === c.id && (
+                  <svg className="absolute -inset-4 -rotate-90 w-24 h-24 pointer-events-none">
+                    <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="4" />
+                    <circle cx="48" cy="48" r="40" fill="none" stroke="#00ffff" strokeWidth="4" strokeDasharray="251" strokeDashoffset={251 - (251 * hoverProgress) / 100} strokeLinecap="round" className="transition-all duration-100" />
+                  </svg>
+                )}
+                <button 
+                  onClick={() => mixChemical(c.id)}
+                  className={`relative p-5 rounded-3xl border-2 transition-all duration-300 ${hoverTarget === c.id ? 'bg-white scale-125 -translate-y-4' : 'bg-slate-900/80 border-white/10'}`}
+                >
+                  <FlaskConical size={28} style={{ color: hoverTarget === c.id ? '#000' : c.color }} />
+                  <p className={`text-[9px] font-black mt-2 text-center ${hoverTarget === c.id ? 'text-black' : 'text-white/50'}`}>{c.name}</p>
+                </button>
+              </div>
+            ))}
+            <button onClick={() => {setPhValue(7); setVolume(0); setHistory([]);}} className="p-5 rounded-3xl bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white transition-all"><RefreshCw size={28}/></button>
           </div>
         </div>
+
+        {/* SIDEBAR LOGS */}
+        <div className="col-span-4 flex flex-col gap-4">
+          <div className="bg-cyan-600 rounded-[2rem] p-6 shadow-xl shadow-cyan-900/20">
+            <h3 className="text-xs font-black text-black/60 uppercase mb-2 flex items-center gap-2"><Info size={16}/> Lab Assistant</h3>
+            <p className="text-sm font-bold leading-relaxed">{currentChemInfo?.fact || "Gunakan tanganmu untuk menunjuk tabung kimia di layar!"}</p>
+          </div>
+
+          <div className="bg-slate-900/50 border border-white/10 rounded-[2rem] p-6 flex-1 overflow-hidden flex flex-col">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Chemical Log</h3>
+            <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+              {history.map((h, i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 animate-in slide-in-from-right-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full shadow-[0_0_10px]" style={{ backgroundColor: h.color, boxShadow: `0 0 10px ${h.color}` }} />
+                    <span className="text-[11px] font-black tracking-tight">{h.fullName}</span>
+                  </div>
+                  <span className="text-[9px] font-mono text-slate-600">{h.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* HIDDEN REPORT TEMPLATE */}
+      <div className="fixed left-[-9999px]">
+         <div ref={reportRef} style={{ width: '800px', padding: '60px', background: '#fff', color: '#000' }}>
+            <h1 style={{ textAlign: 'center', borderBottom: '4px solid #000', paddingBottom: '10px' }}>LAPORAN PRAKTIKUM KIMIA VIRTUAL</h1>
+            <div style={{ marginTop: '40px', fontSize: '20px' }}>
+                <p><b>Nilai pH Akhir:</b> {phValue.toFixed(2)}</p>
+                <p><b>Sifat Larutan:</b> {phValue < 7 ? 'Asam' : phValue > 7 ? 'Basa' : 'Netral'}</p>
+                <p><b>Total Volume:</b> {volume} mL</p>
+            </div>
+            <table style={{ width: '100%', marginTop: '30px', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ background: '#eee' }}><th style={{ border: '1px solid #000', padding: '10px' }}>Zat Kimia</th><th style={{ border: '1px solid #000', padding: '10px' }}>Waktu</th></tr></thead>
+                <tbody>{history.map((h, i) => (<tr key={i}><td style={{ border: '1px solid #000', padding: '10px' }}>{h.fullName}</td><td style={{ border: '1px solid #000', padding: '10px' }}>{h.time}</td></tr>))}</tbody>
+            </table>
+         </div>
       </div>
     </div>
   );
 }
-          [REMOVE ALL LINES BELOW THIS LINE]
-          className="fixed pointer-events-none z-[99] ripple"
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            transform: 'translate(-50%, -50%)'
-          }}
-        >
-          <div className="w-16 h-16 rounded-full border-4 border-cyan-400" />
-        </div>
-      ))}
-
-      <header className="glass-panel border-b border-cyan-400/20">
-        <div className="px-6 py-4">
-          return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 p-4">
-              <h1 className="text-2xl font-bold text-cyan-300 mb-4">Praktikum pH Meter (Drag & Drop + Gesture)</h1>
-              <div className="mb-4 text-center">
-                <p className="text-lg text-cyan-200">Aktifkan kamera agar tangan Anda bisa terdeteksi sebagai mouse (MediaPipe Hand).</p>
-                <p className="text-sm text-cyan-400">Pilih larutan dengan gesture tangan (pinch) atau drag & drop ke tabung reaksi.</p>
-      );
-    }
-
-    export default PhMeterPage;
-                <video ref={videoRef} autoPlay playsInline width={320} height={240} className="rounded-lg border-2 border-cyan-400 shadow" />
-                <span className="text-cyan-400 text-xs mt-2">Preview kamera (tangan Anda akan terdeteksi)</span>
-              </div>
-
-              {/* HandDetector for gesture selection */}
-              <HandDetector onPinch={handlePinch} chemicals={CHEMICALS} />
-
-              {/* Chemical List */}
-              <div className="flex gap-4 mb-8">
-                {CHEMICALS.map((chem) => (
-                  <div
-                    key={chem.id}
-                    draggable
-                    onDragStart={() => handleDragStart(chem.id)}
-                    onDrop={handleDrop}
-                    onDragOver={e => e.preventDefault()}
-                    className={`w-20 h-20 flex items-center justify-center rounded-lg shadow-lg cursor-grab ${chem.color} text-white font-bold text-lg border-2 border-white`}
-                  >
-                    {chem.name}
-                  </div>
-                ))}
-              </div>
-
-              {/* Beaker Drop Area */}
-              <div
-                onDrop={handleDrop}
-                onDragOver={e => e.preventDefault()}
-                className="w-64 h-64 flex flex-col items-center justify-center rounded-xl border-4 border-cyan-400 bg-slate-800 mb-6"
-              >
-                <span className="text-cyan-200 font-semibold mb-2">Tabung Reaksi</span>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {beakerChemicals.map((chemId) => {
-                    const chem = CHEMICALS.find(c => c.id === chemId);
-                    return chem ? (
-                      <span key={chemId} className={`px-3 py-1 rounded-full text-white ${chem.color} font-bold text-sm`}>{chem.name}</span>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-            </div>
-          );
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Floating Chemical Buttons - Vertical sidebar kiri */}
-                    <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-                      {CHEMICALS.map((chem) => (
-                        <div
-                          key={chem.id}
-                          className="relative group"
-                        >
-                          <div
-                            ref={(el) => { chemicalRefs.current[chem.id] = el }}
-                            onClick={() => handleAddChemicalClick(chem.id)}
-                            className={`relative ${chem.color} backdrop-blur-md bg-opacity-90 cursor-pointer hover:scale-110 text-white font-bold py-3 px-4 rounded-xl flex items-center gap-2 text-sm transition-all shadow-2xl
-                              ${hoveredChemical === chem.id ? 'ring-4 ring-cyan-400 scale-125 glow-cyan' : ''}`}
-                            title={chem.fullName}
-                          >
-                            {hoveredChemical === chem.id && (
-                              <div className="absolute inset-0 bg-cyan-400/30 flex items-center justify-center rounded-xl animate-pulse">
-                                <Hand className="w-6 h-6 text-cyan-300 glow-cyan" />
-                              </div>
-                            )}
-                            <Plus className="w-5 h-5" />
-                            {chem.name}
-                          </div>
-                          {/* Info button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              const info = getChemicalInfo(chem.id)
-                              if (info) {
-                                setSelectedChemicalInfo(info)
-                                setShowChemicalModal(true)
-                                sound.click()
-                              }
-                            }}
-                            className="absolute -right-2 -top-2 w-6 h-6 bg-cyan-500/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-cyan-400 hover:scale-110"
-                            title="View Chemical Info"
-                          >
-                            <Info className="w-3.5 h-3.5 text-white" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center space-y-6 p-8">
-                    {connectionTimeout ? (
-                      // Timeout Error State
-                      <>
-                        <XCircle className="w-24 h-24 text-red-400/70 mx-auto" />
-                        <div className="space-y-3">
-                          <p className="text-red-300 text-xl font-bold">Koneksi Timeout ⏱️</p>
-                          <p className="text-red-200/70 text-sm">
-                            Backend tidak merespons dalam 30 detik
-                          </p>
-                        </div>
-                        
-                        {/* Error Troubleshooting */}
-                        <div className="glass-card border-red-400/30 p-5 max-w-md mx-auto text-left">
-                          <p className="text-red-400 font-semibold mb-2">❌ Troubleshooting:</p>
-                          <ul className="space-y-2 text-red-100/70 text-sm">
-                            <li>• Backend mungkin belum running</li>
-                            <li>• Jalankan: <code className="bg-black/30 px-2 py-1 rounded text-xs">python server.py</code></li>
-                            <li>• Pastikan port 8000 tersedia</li>
-                            <li>• Cek apakah webcam terdeteksi sistem</li>
-                          </ul>
-                        </div>
-                        
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 justify-center mt-6">
-                          <button
-                            onClick={handleRetryConnection}
-                            className="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 rounded-lg flex items-center gap-2 transition-all transform hover:scale-105"
-                          >
-                          export default PhMeterPage;
-                          </button>
-                          <button
-                            onClick={() => {
-                              setViewMode('drag')
-                              setCameraPermission('prompt')
-                              setConnectionTimeout(false)
-                            }}
-                            className="px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/50 rounded-lg transition-all"
-                          >
-                            Switch to Drag & Drop
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      // Normal Connecting State
-                      <>
-                        <AlertCircle className="w-24 h-24 text-yellow-400/70 mx-auto animate-pulse" />
-                        <div className="space-y-3">
-                          <p className="text-yellow-300 text-xl font-bold">Menghubungkan ke Lab Virtual...</p>
-                          <p className="text-yellow-200/70 text-sm">
-                            Memproses video stream dari backend
-                          </p>
-                        </div>
-                        
-                        {/* Connection Tips */}
-                        <div className="glass-card border-yellow-400/30 p-5 max-w-md mx-auto text-left">
-                          <p className="text-yellow-400 font-semibold mb-2">🔧 Jika lama loading:</p>
-                          <ul className="space-y-2 text-yellow-100/70 text-sm">
-                            <li>• Pastikan backend running: <code className="bg-black/30 px-2 py-1 rounded text-xs">python server.py</code></li>
-                            <li>• Cek port 8000 tidak dipakai aplikasi lain</li>
-                            <li>• Tunggu hingga "Connected to backend" muncul</li>
-                            <li>• Atau switch ke mode Drag & Drop dulu</li>
-                          </ul>
-                        </div>
-                        
-                        <div className="flex items-center justify-center gap-3 mt-4">
-                          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-yellow-400 animate-ping'}`}></div>
-                          <span className="text-yellow-100/60 text-sm">
-                            {isConnected ? 'Connected, waiting for first frame...' : 'Connecting to ws://localhost:8000...'}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )
-              ) : (
-                <div className="text-center space-y-6">
-                  <BeakerVisualization 
-                    phValue={phValue} 
-                    fillPercentage={Math.min(((mixtureState?.components?.length || 0) * 15), 80)}
-                    className="w-64 h-96 mx-auto"
-                  />
-                  <div>
-                    <h3 className="text-2xl font-bold text-cyan-100 mb-2">
-                      {viewMode === 'drag' ? 'Drag & Drop Mode' : 'Camera Not Started'}
-                    </h3>
-                    <p className="text-cyan-300/50">
-                      {viewMode === 'drag' ? 'Klik kimia di panel kanan' : 'Aktifkan Computer Vision'}
-                    </p>
-                  </div>
-                  {viewMode === 'cv' && (
-                    <button
-                      onClick={() => setShowCameraPrompt(true)}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-xl font-bold hover:shadow-lg transition-all inline-flex items-center gap-3 glow-cyan"
-                    >
-                      <Play className="w-5 h-5" />
-                      export default PhMeterPage;
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 glass-card p-2 border-cyan-400/20 bg-cyan-500/5">
-                <p className="text-xs text-cyan-300/80 text-center">
-                  💡 Tangan kanan lebih akurat
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Temperature Gauge */}
-          <div className="glass-panel p-5 border-orange-400/20 glow-soft">
-            <div className="flex items-center gap-2 mb-3">
-              <Thermometer className="w-5 h-5 text-orange-400" />
-              <h2 className="text-lg font-bold text-orange-100">Temperature</h2>
-            </div>
-            <TemperatureGauge temperature={temperature} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={handleReset} 
-              className="bg-gradient-to-br from-orange-500 to-red-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all glow-cyan-soft"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Reset
-            </button>
-            <button 
-              onClick={handleScreenshot} 
-              className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 hover:shadow-lg transition-all glow-cyan"
-            >
-              <Download className="w-5 h-5" />
-              Report
-            </button>
-          </div>
-
-          {/* Add Chemicals Panel - Hidden in CV mode (ada di overlay kamera) */}
-          {viewMode === 'drag' && (
-            <div className="glass-panel p-6 border-cyan-400/20 glow-cyan-soft">
-              <div className="flex items-center gap-2 mb-4">
-                <FlaskConical className="w-5 h-5 text-cyan-400" />
-                <h2 className="text-lg font-bold text-cyan-100">Add Chemicals</h2>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {CHEMICALS.map((chem) => (
-                  <div key={chem.id} className="relative group">
-                    <div
-                      onClick={() => handleAddChemicalClick(chem.id)}
-                      className={`relative ${chem.color} cursor-pointer hover:scale-105 text-white font-semibold py-3 px-3 rounded-lg flex items-center justify-center gap-2 text-sm transition-all shadow-lg`}
-                    >
-                      <Plus className="w-4 h-4" />
-                      {chem.name}
-                    </div>
-                    {/* Info button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        const info = getChemicalInfo(chem.id)
-                        if (info) {
-                          setSelectedChemicalInfo(info)
-                          setShowChemicalModal(true)
-                          sound.click()
-                        }
-                      }}
-                      className="absolute -right-1 -top-1 w-5 h-5 bg-cyan-500/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-cyan-400 hover:scale-110 z-10"
-                      title="View Chemical Info"
-                    >
-                      <Info className="w-3 h-3 text-white" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <p className="text-cyan-300/50 text-xs mt-3 text-center">
-                Click to add 10mL
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Experiment Guide Overlay */}
-      {currentExperiment && experimentStep < currentExperiment.steps.length && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 glass-panel border-amber-400/40 p-6 max-w-md animate-slideDown glow-soft">
-          <div className="flex items-start gap-3 mb-3">
-            <BookOpen className="w-6 h-6 text-amber-400 flex-shrink-0 mt-1" />
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-amber-100 mb-1">
-                {currentExperiment.name}
-              </h3>
-              <p className="text-xs text-amber-300/70">
-                Step {experimentStep + 1} of {currentExperiment.steps.length}
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setCurrentExperiment(null)
-                setExperimentStep(0)
-                sound.click()
-              }}
-              className="text-amber-300/60 hover:text-amber-300"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          
-          <div className="glass-card border-amber-400/20 p-4 bg-amber-500/5">
-            <p className="text-sm text-amber-100 font-semibold mb-2">
-              {currentExperiment.steps[experimentStep].instruction}
-            </p>
-            <div className="flex items-center gap-2 text-xs text-amber-300/70">
-              <FlaskConical className="w-4 h-4" />
-              <span>Add {currentExperiment.steps[experimentStep].chemical_id}</span>
-            </div>
-          </div>
-
-          {/* Progress bar */}
-          <div className="mt-4 glass-card border-amber-400/10 p-2">
-            <div className="h-2 bg-amber-900/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-500"
-                style={{ width: `${((experimentStep + 1) / currentExperiment.steps.length) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Experiment Complete Overlay */}
-      {currentExperiment && experimentStep >= currentExperiment.steps.length && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 glass-panel border-green-400/40 p-6 max-w-md animate-slideDown glow-soft">
-          <div className="text-center">
-            <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-3 glow-cyan" />
-            <h3 className="text-xl font-bold text-green-100 mb-2">
-              Experiment Complete!
-            </h3>
-            <p className="text-sm text-green-300/70 mb-4">
-              {currentExperiment.name}
-            </p>
-            
-            <div className="glass-card border-green-400/20 p-4 bg-green-500/5 mb-4">
-              <p className="text-xs text-green-100 font-semibold mb-2">Expected Result:</p>
-              <p className="text-xs text-green-300/80">{currentExperiment.expectedResult.observation}</p>
-              <p className="text-xs text-green-300/60 mt-2">
-                pH: {currentExperiment.expectedResult.phRange} | 
-                Color: {currentExperiment.expectedResult.color}
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setCurrentExperiment(null)
-                setExperimentStep(0)
-                sound.success()
-              }}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-xl font-semibold hover:shadow-lg transition-all"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Bubble Effects */}
-      {bubbles.map(bubble => (
-        <div
-          key={bubble.id}
-          className="absolute rounded-full bg-cyan-400/30 backdrop-blur-sm border border-cyan-300/50 animate-bubble pointer-events-none"
-          style={{
-            left: `${bubble.x}%`,
-            bottom: `${bubble.y}%`,
-            width: `${bubble.size}px`,
-            height: `${bubble.size}px`,
-            animation: 'bubble 2s ease-out forwards'
-          }}
-        />
-      ))}
-
-      {/* Modals */}
-      {showChemicalModal && selectedChemicalInfo && (
-        <ChemicalModal
-          chemical={selectedChemicalInfo}
-          isOpen={showChemicalModal}
-          onClose={() => {
-            setShowChemicalModal(false)
-            sound.click()
-          }}
-        />
-      )}
-
-      {showSafetyWarning && safetyWarningData && (
-        <SafetyWarning
-          {...safetyWarningData}
-          onClose={() => {
-            setShowSafetyWarning(false)
-            sound.click()
-          }}
-        />
-      )}
-
-      {showExperimentSelector && (
-        <ExperimentSelector
-          isOpen={showExperimentSelector}
-          onSelectExperiment={handleSelectExperiment}
-          onClose={() => {
-            setShowExperimentSelector(false)
-            sound.click()
-          }}
-        />
-      )}
-    </div>
-  )
-}
-
-export default PhMeterPage;

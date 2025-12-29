@@ -107,6 +107,7 @@ export default function BerandaPage() {
 
   return (
     <>
+      {/* Navbar utama */}
       <Navigation />
       <div className="min-h-screen bg-gradient-to-b from-[#0B1120] via-[#1a1f35] to-[#0B1120]">
         {/* Hero Section */}
