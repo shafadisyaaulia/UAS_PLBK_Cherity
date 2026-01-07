@@ -1,4 +1,4 @@
-# 🚀 SOLVIA Deployment Guide
+# 🚀 CHERITY Deployment Guide
 
 ## Deployment Architecture
 
@@ -33,7 +33,7 @@ Backend (FastAPI)   → Railway / Render
 
 4. **Deploy**
    - Vercel akan otomatis build & deploy
-   - URL production: `https://solvia-lab.vercel.app`
+   - URL production: `https://cherity-lab.vercel.app`
 
 ### Manual CLI Deployment
 
@@ -44,7 +44,7 @@ npm i -g vercel
 # Deploy to production
 vercel --prod
 
-# Domain akan otomatis: solvia-xyz.vercel.app
+# Domain akan otomatis: cherity-xyz.vercel.app
 ```
 
 ---
@@ -71,21 +71,21 @@ vercel --prod
 
 4. **Deploy**
    - Railway akan build dengan Dockerfile
-   - URL backend: `https://solvia-api.up.railway.app`
+   - URL backend: `https://cherity-api.up.railway.app`
 
 ### Method 2: Docker Manual Deploy
 
 ```bash
 # Build Docker image
 cd api
-docker build -t solvia-backend .
+docker build -t cherity-backend .
 
 # Test locally
-docker run -p 8000:8000 solvia-backend
+docker run -p 8000:8000 cherity-backend
 
 # Push to registry (Railway/Render compatible)
-docker tag solvia-backend registry.railway.app/solvia-backend
-docker push registry.railway.app/solvia-backend
+docker tag cherity-backend registry.railway.app/cherity-backend
+docker push registry.railway.app/cherity-backend
 ```
 
 ---
@@ -101,7 +101,7 @@ docker push registry.railway.app/solvia-backend
 
 2. **Configuration**
    ```yaml
-   Name: solvia-backend
+   Name: cherity-backend
    Region: Singapore
    Branch: main
    Root Directory: api
@@ -117,7 +117,7 @@ docker push registry.railway.app/solvia-backend
 
 4. **Deploy**
    - Render akan auto-detect Dockerfile
-   - URL: `https://solvia-backend.onrender.com`
+   - URL: `https://cherity-backend.onrender.com`
 
 ---
 
@@ -127,12 +127,12 @@ docker push registry.railway.app/solvia-backend
 
 1. **Vercel Environment Variables**
    ```env
-   NEXT_PUBLIC_API_URL=https://solvia-api.up.railway.app
+   NEXT_PUBLIC_API_URL=https://cherity-api.up.railway.app
    ```
 
 2. **Update WebSocket Hook** (if needed)
    ```typescript
-   // app/hooks/useSolviaWebSocket.ts
+   // app/hooks/useCherityWebSocket.ts
    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'ws://localhost:8000'
    ```
 
@@ -215,7 +215,7 @@ pip freeze > api/requirements.txt
    ```python
    # api/main.py already configured
    origins = [
-       "https://solvia-lab.vercel.app",
+       "https://cherity-lab.vercel.app",
        "http://localhost:3000"
    ]
    ```
@@ -232,7 +232,7 @@ pip freeze > api/requirements.txt
 
 ### Vercel
 1. Go to Project Settings → Domains
-2. Add custom domain (e.g., `solvia.app`)
+2. Add custom domain (e.g., `cherity.app`)
 3. Update DNS records
 4. Vercel auto-provisions SSL
 
@@ -268,4 +268,4 @@ logging.basicConfig(level=logging.WARNING)  # Production level
 
 ---
 
-**SOLVIA** © 2025 | Ready for Production 🚀
+**CHERITY** © 2025 | Ready for Production 🚀

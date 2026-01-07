@@ -25,7 +25,7 @@ export default function AboutPage() {
             <div className="inline-flex items-center gap-3 mb-6">
               <FlaskConical className="w-16 h-16 text-cyan-400 glow-cyan-soft" />
               <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
-                SOLVIA
+                CHERITY
               </h1>
             </div>
             <p className="text-2xl text-cyan-100/80 font-semibold mb-4">
@@ -116,12 +116,12 @@ export default function AboutPage() {
                 behindGlowEnabled={true}
                 behindGlowColor="rgba(34, 211, 238, 0.5)"
                 innerGradient="linear-gradient(145deg, #22d3ee44 0%, #06b6d444 100%)"
-                onContactClick={() => window.open('mailto:shafa@solvia.lab', '_blank')}
+                onContactClick={() => window.open('mailto:shafa@cherity.lab', '_blank')}
                 avatarStyle={{ objectPosition: 'center 5%' }}
               />
               <div className="mt-6 flex gap-4">
                 <button
-                  onClick={() => window.open('mailto:shafa@solvia.lab', '_blank')}
+                  onClick={() => window.open('mailto:shafa@cherity.lab', '_blank')}
                   className="glass-card border-cyan-400/30 p-3 rounded-xl hover:bg-cyan-500/20 transition-all group"
                 >
                   <Mail className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
@@ -156,12 +156,12 @@ export default function AboutPage() {
                 behindGlowEnabled={true}
                 behindGlowColor="rgba(139, 92, 246, 0.5)"
                 innerGradient="linear-gradient(145deg, #8b5cf644 0%, #7c3aed44 100%)"
-                onContactClick={() => window.open('mailto:dea@solvia.lab', '_blank')}
+                onContactClick={() => window.open('mailto:dea@cherity.lab', '_blank')}
                 avatarStyle={{ objectPosition: 'center 45%' }}
               />
               <div className="mt-6 flex gap-4">
                 <button
-                  onClick={() => window.open('mailto:dea@solvia.lab', '_blank')}
+                  onClick={() => window.open('mailto:dea@cherity.lab', '_blank')}
                   className="glass-card border-purple-400/30 p-3 rounded-xl hover:bg-purple-500/20 transition-all group"
                 >
                   <Mail className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />

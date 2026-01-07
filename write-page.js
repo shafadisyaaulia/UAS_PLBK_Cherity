@@ -4,7 +4,7 @@ const content = `'use client'
 
 import { useState, useEffect } from 'react'
 import { Camera, AlertTriangle, Droplet, FlaskConical, RotateCcw, ImagePlus, CheckCircle, XCircle, Beaker, Sparkles, Wifi, WifiOff, Flask, Plus } from 'lucide-react'
-import { useSolviaWebSocket, addChemical, resetMixture } from './hooks/useSolviaWebSocket'
+import { useCherityWebSocket, addChemical, resetMixture } from './hooks/useCherityWebSocket'
 
 const CHEMICALS = [
   { id: 'HCl', name: 'HCl', fullName: 'Hydrochloric Acid', color: 'bg-red-500' },
@@ -14,7 +14,7 @@ const CHEMICALS = [
 ]
 
 export default function Home() {
-  const { isConnected, frame, mixtureState, safetyStatus, error } = useSolviaWebSocket({ url: 'ws://localhost:8000/ws/camera', autoConnect: true })
+  const { isConnected, frame, mixtureState, safetyStatus, error } = useCherityWebSocket({ url: 'ws://localhost:8000/ws/camera', autoConnect: true })
   const phValue = mixtureState?.current_pH ?? 7.0
   const aiStatus = safetyStatus === 'danger' ? 'danger' : 'safe'
   const [reactionLog, setReactionLog] = useState([{ id: 1, time: '10:23:15', reaction: 'Waiting...' }])
@@ -34,7 +34,7 @@ export default function Home() {
     if (frame) {
       const link = document.createElement('a')
       link.href = \`data:image/jpeg;base64,\${frame}\`
-      link.download = \`solvia-\${Date.now()}.jpg\`
+      link.download = `cherity-${Date.now()}.jpg`
       link.click()
     }
   }
@@ -58,7 +58,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Sparkles className="w-8 h-8 text-cyan-400" />
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">SOLVIA</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">CHERITY</h1>
             </div>
             <div className={\`flex items-center gap-2 px-3 py-2 rounded-full \${isConnected ? 'bg-blue-500/20' : 'bg-gray-500/20'}\`}>
               {isConnected ? <><Wifi className="w-4 h-4 text-blue-400" /><span className="text-xs">CONNECTED</span></> : <><WifiOff className="w-4 h-4" /><span className="text-xs">OFFLINE</span></>}

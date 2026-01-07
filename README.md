@@ -1,5 +1,5 @@
 ---
-title: SOLVIA AI Laboratory
+title: CHERITY - Chemistry Virtual Integrated Laboratory
 emoji: 9ea
 colorFrom: blue
 colorTo: cyan
@@ -7,7 +7,7 @@ sdk: docker
 app_port: 7860
 ---
 
-# SOLVIA - Laboratory Intelligence
+# CHERITY - Chemistry Virtual Integrated Laboratory
 
 Platform praktikum kimia virtual berbasis Computer Vision dan AI Analysis.
 
@@ -29,4 +29,4 @@ README.md
 *Pastikan file konfigurasi frontend (package.json, tailwind.config.ts, next.config.js, tsconfig.json, postcss.config.js) hanya ada di dalam folder frontend/.*
 
 ---
-**SOLVIA** 2025
+**CHERITY** 2025

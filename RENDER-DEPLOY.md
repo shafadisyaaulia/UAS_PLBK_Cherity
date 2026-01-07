@@ -26,12 +26,12 @@
 
 2. **Connect Repository:**
    - Klik "Configure Account" kalau belum connect
-   - Pilih repository **SOLVIA**
+   - Pilih repository **CHERITY**
    - Klik "Connect"
 
 3. **Configure Service:**
    ```
-   Name: solvia-api
+   Name: cherity-api
    Region: Singapore (paling dekat) atau Oregon (default)
    Branch: main
    Root Directory: api
@@ -47,7 +47,7 @@
 5. **Tunggu deployment** (~3-5 menit)
    - Render akan auto-install dependencies
    - Build dan start server
-   - Kasih kamu URL (contoh: `https://solvia-api.onrender.com`)
+   - Kasih kamu URL (contoh: `https://cherity-api.onrender.com`)
 
 ---
 
@@ -55,7 +55,7 @@
 
 Setelah deployment selesai:
 1. Di Render dashboard, copy URL service kamu
-2. Contoh: `https://solvia-api.onrender.com`
+2. Contoh: `https://cherity-api.onrender.com`
 3. **SAVE URL ini** - nanti dipake di Vercel
 
 ---
@@ -63,12 +63,12 @@ Setelah deployment selesai:
 ### **Step 4: Update Vercel Environment Variable**
 
 1. Buka https://vercel.com/dashboard
-2. Pilih project **SOLVIA**
+2. Pilih project **CHERITY**
 3. Go to **Settings** → **Environment Variables**
 4. Add new variable:
    ```
    Name: NEXT_PUBLIC_API_URL
-   Value: https://solvia-api.onrender.com
+   Value: https://cherity-api.onrender.com
    Environment: Production, Preview, Development
    ```
 5. **Save**
@@ -88,7 +88,7 @@ Setelah deployment selesai:
 
 ### **Step 6: Add GitHub Secret**
 
-Buka: `https://github.com/shafadisyaaulia/SOLVIA/settings/secrets/actions`
+Buka: `https://github.com/shafadisyaaulia/CHERITY/settings/secrets/actions`
 
 **Add secret:**
 ```
@@ -148,7 +148,7 @@ Render free tier akan **sleep setelah 15 menit tidak ada traffic**.
 
 Setelah deploy:
 
-1. Buka: `https://solvia-api.onrender.com/docs`
+1. Buka: `https://cherity-api.onrender.com/docs`
 2. Harusnya muncul **FastAPI Swagger UI**
 3. Test endpoint `/api/health` atau yang lain
 

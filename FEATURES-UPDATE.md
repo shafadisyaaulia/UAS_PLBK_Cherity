@@ -1,4 +1,4 @@
-# 🎉 SOLVIA - Feature Update Complete!
+# 🎉 CHERITY - Feature Update Complete!
 
 ## ✨ New Amazing Features Added
 
@@ -189,7 +189,7 @@ app/hooks/
 | Experiment Guide | ✅ Complete | Floating guide with step tracking |
 | Enhanced Animations | ✅ Complete | Smooth transitions and effects |
 
-## 🌟 What Makes SOLVIA Impressive Now?
+## 🌟 What Makes CHERITY Impressive Now?
 
 1. **Professional Sound Design** - Real-time audio feedback for every action
 2. **Educational Depth** - 7 structured experiments with learning objectives
@@ -232,6 +232,6 @@ app/hooks/
 
 ---
 
-**Made with ❤️ for UAS PROJEK - SOLVIA Virtual Chemistry Lab**
+**Made with ❤️ for UAS PROJEK - CHERITY Virtual Chemistry Lab**
 
 *"Experience Chemistry Like Never Before!"* 🧪✨

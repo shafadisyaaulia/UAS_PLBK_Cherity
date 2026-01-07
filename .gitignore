@@ -16,7 +16,7 @@ api/
 UAS-PROJEK/
 start-backend.ps1
 start-frontend.ps1
-start-solvia.ps1
+start-cherity.ps1
 serverless.py
 requirements-vercel.txt
 requirements.txt

@@ -1,4 +1,3 @@
 {
-  "/beranda/page": "app/beranda/page.js",
-  "/praktikum/ph-meter/page": "app/praktikum/ph-meter/page.js"
+  "/beranda/page": "app/beranda/page.js"
 }

@@ -24,7 +24,7 @@ const getPhColor = (ph: number) => {
   return "#a855f7"; 
 };
 
-export default function SolviaSMPEditon() {
+export default function CheritySMPEdition() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -156,7 +156,7 @@ export default function SolviaSMPEditon() {
     const imgData = canvas.toDataURL("image/jpeg", 1.0);
     const pdf = new jsPDF("p", "mm", "a4");
     pdf.addImage(imgData, "JPEG", 0, 0, 210, (canvas.height * 210) / canvas.width);
-    pdf.save(`Laporan_Solvia_${Date.now()}.pdf`);
+    pdf.save(`Laporan_Cherity_${Date.now()}.pdf`);
   };
 
   if (!mounted) return null;

@@ -1,4 +1,4 @@
-# ✨ SOLVIA - Final Enhancement Summary
+# ✨ CHERITY - Final Enhancement Summary
 
 ## 🎨 Estetika & UI Improvements
 
@@ -47,12 +47,12 @@
 // Generates 1920x1080 professional lab certificate
 handleScreenshot() {
   - Draw #0B1120 background
-  - Header: "SOLVIA - Laboratory Report" + timestamp
+  - Header: "CHERITY - Laboratory Report" + timestamp
   - Camera frame (800x600)
   - pH Analysis box with value & status
   - Chemicals list (max 5 components)
   - Safety status banner (green/red)
-  - Footer: "Verified by SOLVIA AI Computer Vision System"
+  - Footer: "Verified by CHERITY AI Computer Vision System"
   - Download as .png (not .jpg)
 }
 ```
@@ -145,7 +145,7 @@ app/
 ├── dashboard/page.tsx      ← Main lab interface
 ├── landing/page.tsx        ← Marketing homepage
 ├── hooks/
-│   └── useSolviaWebSocket.ts  ← WebSocket + handData
+│   └── useCherityWebSocket.ts  ← WebSocket + handData
 ├── globals.css             ← Theme variables + utilities
 components/
 ├── Navigation.tsx          ← Glassmorphism navbar
@@ -169,7 +169,7 @@ const [hoveredChemical, setHoveredChemical] = useState<string | null>(null)
 ```
 Backend (MediaPipe) 
   → WebSocket (main.py:917)
-    → useSolviaWebSocket hook
+    → useCherityWebSocket hook
       → handData { pointer_position, gesture }
         → Virtual Cursor position
           → Chemical hover detection
@@ -266,5 +266,5 @@ White/10: rgba(255, 255, 255, 0.1)
 
 ---
 
-**SOLVIA** © 2025 | Chemistry Laboratory Intelligence  
+**CHERITY** © 2025 | Chemistry Laboratory Intelligence  
 Powered by Next.js 14 + FastAPI + MediaPipe + OpenCV

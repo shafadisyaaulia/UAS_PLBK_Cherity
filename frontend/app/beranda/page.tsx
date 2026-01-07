@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import SupabaseProfileDemo from '@/components/SupabaseProfileDemo'
 import SupabaseAuthDemo from '@/components/SupabaseAuthDemo'
-// Import PoseDetector secara dinamis agar hanya di-load di client
-const PoseDetector = dynamic(() => import('@/components/PoseDetector'), { ssr: false })
 import { FlaskConical, Sparkles, BookOpen, Camera, Beaker, TestTube, BarChart3, Users, ArrowRight, Play, Shield, Brain, Hand, MousePointer2, Zap, Droplet, FileText } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -128,46 +125,37 @@ export default function BerandaPage() {
                 </div>
               
               <h1 className="text-6xl md:text-8xl font-bold text-gradient mb-6">
-                SOLVIA
+                CHERITY
               </h1>
               
               <p className="text-2xl md:text-3xl text-cyan-100/80 max-w-3xl mx-auto">
-                Solution Of Laboratory Via Interactive Assistant
+                Chemistry Virtual Integrated Laboratory
               </p>
               
               <p className="text-lg text-cyan-100/60 max-w-2xl mx-auto leading-relaxed">
                 Platform pembelajaran kimia revolusioner dengan teknologi Computer Vision dan AI. 
                 Praktikum aman, interaktif, dan menyenangkan untuk semua tingkat pendidikan.
               </p>
-              {/* Demo Computer Vision Serverless */}
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="mb-2 text-cyan-200 font-semibold">Demo Pose Detection (MediaPipe JS, 100% di browser)</div>
-                <div className="rounded-xl border-2 border-cyan-400/30 bg-black/40 shadow-lg">
-                  <PoseDetector />
-                </div>
-                <div className="text-xs text-cyan-300/60 mt-2">Tidak ada data dikirim ke server. Semua proses AI di browser kamu.</div>
-                {/* Login/profile info now moved to navbar dropdown */}
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button 
-                onClick={() => router.push('/praktikum/ph-meter')}
-                className="group bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:shadow-2xl transition-all flex items-center gap-3 hover:scale-105 glow-cyan"
-              >
-                <Play className="w-6 h-6" />
-                Mulai Praktikum Sekarang
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-              </button>
               
-              <button 
-                onClick={() => router.push('/modules')}
-                className="group glass-card border-2 border-cyan-400/30 text-cyan-100 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-white/10 hover:border-cyan-400/50 transition-all flex items-center gap-3 hover:scale-105"
-              >
-                <BookOpen className="w-6 h-6" />
-                Lihat Materi
-              </button>
+              {/* CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center py-8">
+                <button 
+                  onClick={() => router.push('/praktikum/ph-meter')}
+                  className="group bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-12 py-6 rounded-2xl font-bold text-xl hover:shadow-2xl transition-all flex items-center gap-4 hover:scale-105 glow-cyan shadow-lg shadow-cyan-500/50"
+                >
+                  <Play className="w-7 h-7" />
+                  Mulai Praktikum Sekarang
+                  <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
+                </button>
+                
+                <button 
+                  onClick={() => router.push('/modules')}
+                  className="group glass-card border-2 border-cyan-400/30 text-cyan-100 px-12 py-6 rounded-2xl font-bold text-xl hover:bg-white/10 hover:border-cyan-400/50 transition-all flex items-center gap-4 hover:scale-105"
+                >
+                  <BookOpen className="w-7 h-7" />
+                  Lihat Materi
+                </button>
+              </div>
             </div>
 
             {/* Stats Counter */}
@@ -223,7 +211,7 @@ export default function BerandaPage() {
                   {/* Mascot Text */}
                   <div className="text-center md:text-left space-y-4">
                     <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-                      SOLVIA Assistant
+                      CHERITY Assistant
                     </div>
                     <p className="text-cyan-100/60 text-lg max-w-md">
                       🧪 Asisten virtual Anda untuk eksperimen kimia yang aman dan menyenangkan!
@@ -304,7 +292,7 @@ export default function BerandaPage() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-cyan-100 mb-2">Tentang</h3>
-                    <p className="text-cyan-100/60">Tentang SOLVIA dan tim</p>
+                    <p className="text-cyan-100/60">Tentang CHERITY dan tim</p>
                   </div>
                   <ArrowRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-2 transition-transform" />
                 </div>
@@ -401,13 +389,13 @@ export default function BerandaPage() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <FlaskConical className="w-6 h-6 text-cyan-400" />
-            <span className="text-xl font-bold text-gradient">SOLVIA</span>
+            <span className="text-xl font-bold text-gradient">CHERITY</span>
           </div>
           <p className="text-cyan-100/60 mb-4">
-            Solution Of Laboratory Via Interactive Assistant
+            Chemistry Virtual Integrated Laboratory
           </p>
           <p className="text-cyan-100/40 text-sm">
-            © 2025 SOLVIA. Dibuat dengan ❤️ oleh Shafa Disya Aulia & Dea Zasqia Pasaribu Malau
+            © 2025 CHERITY. Dibuat dengan ❤️ oleh Shafa Disya Aulia & Dea Zasqia Pasaribu Malau
           </p>
         </div>
       </footer>

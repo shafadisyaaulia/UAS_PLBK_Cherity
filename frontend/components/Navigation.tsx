@@ -100,7 +100,7 @@ export default function Navigation() {
       href: '/about', 
       label: 'Tentang', 
       icon: User,
-      description: 'Tentang SOLVIA'
+      description: 'Tentang CHERITY'
     },
   ]
 
@@ -127,7 +127,7 @@ export default function Navigation() {
               </div>
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 group-hover:from-cyan-300 group-hover:via-blue-300 group-hover:to-purple-300 transition-all">
-                  SOLVIA
+                  CHERITY
                 </span>
                 <span className="text-xs text-cyan-400/60 font-semibold tracking-wider">SMART LAB</span>
               </div>
@@ -244,7 +244,7 @@ export default function Navigation() {
                         </div>
                         <div>
                           <div className="text-cyan-100 font-bold">{user ? user.email : 'Guest User'}</div>
-                          <div className="text-cyan-400/60 text-xs">{user ? user.id : 'guest@solvia.lab'}</div>
+                          <div className="text-cyan-400/60 text-xs">{user ? user.id : 'guest@cherity.lab'}</div>
                         </div>
                       </div>
                     </div>

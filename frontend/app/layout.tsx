@@ -6,8 +6,8 @@ import Navigation from '@/components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SOLVIA - Chemistry Laboratory',
-  description: 'Solution Vision-driven Laboratory with Intelligent Analytics - Platform praktikum kimia virtual dengan AI & Computer Vision',
+  title: 'CHERITY - Chemistry Virtual Integrated Laboratory',
+  description: 'Chemistry Virtual Integrated Laboratory - Platform praktikum kimia virtual dengan AI & Computer Vision',
 }
 
 export default function RootLayout({

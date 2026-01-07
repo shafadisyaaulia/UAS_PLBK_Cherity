@@ -138,7 +138,7 @@ export default function FeaturesPage() {
           
           <p className="text-xl text-cyan-100/60 max-w-3xl mx-auto">
             Teknologi terdepan untuk pengalaman belajar kimia yang tak terlupakan. 
-            SOLVIA menggabungkan AI, Computer Vision, dan simulasi akurat dalam satu platform.
+            CHERITY menggabungkan AI, Computer Vision, dan simulasi akurat dalam satu platform.
           </p>
         </div>
 

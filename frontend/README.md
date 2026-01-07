@@ -1,6 +1,6 @@
-# SOLVIA Frontend (Next.js)
+# CHERITY Frontend (Next.js)
 
-Ini adalah kode frontend untuk SOLVIA, siap dideploy ke Vercel.
+Ini adalah kode frontend untuk CHERITY, siap dideploy ke Vercel.
 
 - Semua koneksi ke backend (WebSocket & REST API) sudah menggunakan environment variable.
 - Contoh konfigurasi ada di `.env.local`.

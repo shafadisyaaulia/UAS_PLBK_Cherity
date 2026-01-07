@@ -149,8 +149,8 @@ const DEFAULT_STATS: UserStats = {
 }
 
 // LocalStorage keys
-const ACHIEVEMENTS_KEY = 'solvia_achievements'
-const STATS_KEY = 'solvia_user_stats'
+const ACHIEVEMENTS_KEY = 'cherity_achievements'
+const STATS_KEY = 'cherity_user_stats'
 
 // Get achievements from localStorage
 export function getAchievements(): Achievement[] {
