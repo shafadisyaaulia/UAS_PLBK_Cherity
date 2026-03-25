@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'CHERITY - Chemistry Virtual Integrated Laboratory',
   description: 'Chemistry Virtual Integrated Laboratory - Platform praktikum kimia virtual dengan AI & Computer Vision',
+  other: {
+    'dicoding:email': 'disyaauliashafa@gmail.com',
+  },
 }
 
 export default function RootLayout({
