@@ -1,6 +1,6 @@
 'use client'
 
-import { FlaskConical, Sparkles, Target, Zap, Users, Award, Mail, Github, Linkedin } from 'lucide-react'
+import { FlaskConical, Sparkles, Target, Zap, Users, Award } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import ProfileCard from '@/components/ProfileCard'
 import Navigation from '@/components/Navigation'
@@ -103,85 +103,53 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-            {/* Developer 1 */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Developer 1 - Shafa */}
             <div className="flex flex-col items-center">
               <ProfileCard
                 avatarUrl="/images/team/shafa.JPG" 
                 name="Shafa Disya Aulia"
-                title="Full Stack Developer"
+                title="NPM : 2308107010002"
                 handle="shafadisya"
                 status="Active"
-                contactText="Contact"
+                contactText=""
                 behindGlowEnabled={true}
-                behindGlowColor="rgba(34, 211, 238, 0.5)"
-                innerGradient="linear-gradient(145deg, #22d3ee44 0%, #06b6d444 100%)"
-                onContactClick={() => window.open('mailto:shafa@cherity.lab', '_blank')}
+                behindGlowColor="rgba(34, 211, 238, 0.4)"
+                innerGradient="linear-gradient(145deg, #22d3ee33 0%, #06b6d433 100%)"
                 avatarStyle={{ objectPosition: 'center 5%' }}
               />
-              <div className="mt-6 flex gap-4">
-                <button
-                  onClick={() => window.open('mailto:shafa@cherity.lab', '_blank')}
-                  className="glass-card border-cyan-400/30 p-3 rounded-xl hover:bg-cyan-500/20 transition-all group"
-                >
-                  <Mail className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={() => window.open('https://github.com/shafadisya', '_blank')}
-                  className="glass-card border-cyan-400/30 p-3 rounded-xl hover:bg-cyan-500/20 transition-all group"
-                >
-                  <Github className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={() => window.open('https://linkedin.com/in/shafadisya', '_blank')}
-                  className="glass-card border-cyan-400/30 p-3 rounded-xl hover:bg-cyan-500/20 transition-all group"
-                >
-                  <Linkedin className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                </button>
-              </div>
-              <p className="text-cyan-100/60 text-center mt-4 max-w-xs">
-                Spesialisasi: Frontend Development, UI/UX Design, Computer Vision Integration
-              </p>
             </div>
 
-            {/* Developer 2 */}
+            {/* Developer 2 - Dea */}
             <div className="flex flex-col items-center">
               <ProfileCard
                 avatarUrl="/images/team/dea.jpeg"
                 name="Dea Zasqia Pasaribu Malau"
-                title="Backend Developer"
+                title="NPM : 2308107010004"
                 handle="deazasqia"
                 status="Active"
-                contactText="Contact"
+                contactText=""
                 behindGlowEnabled={true}
-                behindGlowColor="rgba(139, 92, 246, 0.5)"
-                innerGradient="linear-gradient(145deg, #8b5cf644 0%, #7c3aed44 100%)"
-                onContactClick={() => window.open('mailto:dea@cherity.lab', '_blank')}
+                behindGlowColor="rgba(139, 92, 246, 0.4)"
+                innerGradient="linear-gradient(145deg, #8b5cf633 0%, #7c3aed33 100%)"
                 avatarStyle={{ objectPosition: 'center 45%' }}
               />
-              <div className="mt-6 flex gap-4">
-                <button
-                  onClick={() => window.open('mailto:dea@cherity.lab', '_blank')}
-                  className="glass-card border-purple-400/30 p-3 rounded-xl hover:bg-purple-500/20 transition-all group"
-                >
-                  <Mail className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={() => window.open('https://github.com/deazasqia', '_blank')}
-                  className="glass-card border-purple-400/30 p-3 rounded-xl hover:bg-purple-500/20 transition-all group"
-                >
-                  <Github className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                </button>
-                <button
-                  onClick={() => window.open('https://linkedin.com/in/deazasqia', '_blank')}
-                  className="glass-card border-purple-400/30 p-3 rounded-xl hover:bg-purple-500/20 transition-all group"
-                >
-                  <Linkedin className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                </button>
-              </div>
-              <p className="text-cyan-100/60 text-center mt-4 max-w-xs">
-                Spesialisasi: API Development, Machine Learning, Chemistry Simulation Logic
-              </p>
+            </div>
+
+            {/* Developer 3 - Maulizar */}
+            <div className="flex flex-col items-center">
+              <ProfileCard
+                avatarUrl="/images/team/maulizar.jpeg" 
+                name="Maulizar"
+                title="NPM : 2308107010007"
+                handle="maulizar"
+                status="Active"
+                contactText=""
+                behindGlowEnabled={true}
+                behindGlowColor="rgba(52, 211, 153, 0.4)"
+                innerGradient="linear-gradient(145deg, #34d39933 0%, #05966933 100%)"
+                avatarStyle={{ objectPosition: 'center center' }}
+              />
             </div>
           </div>
 
@@ -205,9 +173,9 @@ export default function AboutPage() {
                 <div className="text-cyan-100/50 text-sm">Hand Tracking AI</div>
               </div>
               <div>
-                <div className="text-4xl mb-2">🎨</div>
-                <div className="text-cyan-100 font-semibold">Tailwind CSS</div>
-                <div className="text-cyan-100/50 text-sm">Styling</div>
+                <div className="text-4xl mb-2">⚡</div>
+                <div className="text-cyan-100 font-semibold">Supabase</div>
+                <div className="text-cyan-100/50 text-sm">Database & BaaS</div>
               </div>
             </div>
           </div>
