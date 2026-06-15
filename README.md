@@ -4,6 +4,7 @@
 > 
 > *Referensi Dokumen Pendukung: PPT KELOMPOK 8 PLBK.pdf*
 
+![Dashboard CHERITY](frontend/public/images/hero-screenshot.png)
 ---
 
 ## 📌 Tentang CHERITY
@@ -76,4 +77,3 @@ Sesuai dengan repositori ini, berikut adalah pemetaan komponen file utama yang d
 ├── .gitignore                 # Daftar file yang diabaikan Git
 └── DEPLOYMENT-GUIDE.md        # Panduan deployment sistem ke server cloud
 
-![Dashboard CHERITY](frontend/public/images/hero-screenshot.png)
