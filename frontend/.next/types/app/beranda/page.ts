@@ -1,4 +1,4 @@
-// File: C:\INFORMATIKA\SEMESTER 5\Viskom\AI-Safe\frontend\app\beranda\page.tsx
+// File: C:\INFORMATIKA\LOMBA\SOLVIA\SOLVIA\frontend\app\beranda\page.tsx
 import * as entry from '../../../../app/beranda/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

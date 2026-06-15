@@ -1,4 +1,4 @@
-// File: C:\INFORMATIKA\SEMESTER 5\Viskom\AI-Safe\frontend\app\layout.tsx
+// File: C:\INFORMATIKA\LOMBA\SOLVIA\SOLVIA\frontend\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
